@@ -4,7 +4,7 @@ from django.db.models.fields.related import ManyToManyField, OneToOneField
 
 
 class Kategoria(models.Model):
-    id_kategorii = models.IntegerField(primary_key=True)
+    id_kategorii = models.AutoField(primary_key=True)
     nazwa_kategorii = models.CharField(max_length=50, default="null")
     id_nadkategorii = models.IntegerField()
     
@@ -16,7 +16,7 @@ class Kategoria(models.Model):
     
 
 class Producent(models.Model):
-    id_producenta = models.IntegerField(primary_key=True)
+    id_producenta = models.AutoField(primary_key=True)
     imie = models.CharField(max_length=50, verbose_name="imię", default="null")
     nazwisko = models.CharField(max_length=50, default="null")
     adres = models.CharField(max_length=50, default="null")
@@ -28,7 +28,7 @@ class Producent(models.Model):
     
     
 class Klient(models.Model):
-    id_klienta = models.IntegerField(primary_key=True)
+    id_klienta = models.AutoField(primary_key=True)
     imie = models.CharField(max_length=50, verbose_name="imię", default="null")
     nazwisko = models.CharField(max_length=50, default="null")
     adres_dostawy = models.CharField(max_length=50, default="null")
@@ -83,7 +83,7 @@ class Zamowienie(models.Model):
     class Meta:
         unique_together = (('id_zamowienie', 'klient'),)
     
-    id_zamowienie = models.IntegerField(null=True)
+    id_zamowienie = models.IntegerField()
     czy_oplacone = models.BooleanField(verbose_name="czy opłacone")
     sposob_dostawy = models.CharField(max_length=50, verbose_name="sposób dostawy")
     status = models.IntegerField()
@@ -104,7 +104,7 @@ class Zamowienie(models.Model):
     
     
 class Produkt(models.Model):
-    id_produktu = models.IntegerField(primary_key=True)
+    id_produktu = models.AutoField(primary_key=True)
     numer_partii = models.IntegerField()
     cena = models.FloatField()
     # What to do with desriptions?
