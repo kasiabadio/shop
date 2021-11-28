@@ -47,13 +47,20 @@ class Czat(models.Model):
     
     
     # many-to-one with klient
-    klient = models.IntegerField()
+    klient = models.ForeignKey(Klient, on_delete=models.CASCADE)
+    # klient = models.IntegerField()
     
     # many-to-one with producent
-    producent = models.IntegerField()
+    producent = models.ForeignKey(Producent, on_delete=models.CASCADE)
+    # producent = models.IntegerField()
 
     
 class Wiadomosc(models.Model):
+    
+    class Meta:
+        unique_together = (('id_wiadomosc', 'czat'),)
+    
+    id_wiadomosc = models.IntegerField(null=True)
     tresc = models.CharField(max_length=50, verbose_name="treść")
     data = models.DateField()
     czy_odczytana = models.BooleanField(default=False)
@@ -71,16 +78,19 @@ class Reklamacja(models.Model):
 
 
 class Zamowienie(models.Model):
-    # many-to-one with klient
-    klient = models.ForeignKey(Klient, primary_key=True, on_delete=models.CASCADE)
-        
+    
+    # Why it didn't show in table?
+    class Meta:
+        unique_together = (('id_zamowienie', 'klient'),)
+    
+    id_zamowienie = models.IntegerField(null=True)
     czy_oplacone = models.BooleanField(verbose_name="czy opłacone")
     sposob_dostawy = models.CharField(max_length=50, verbose_name="sposób dostawy")
     status = models.IntegerField()
     koszt = models.FloatField()
     
     # one-to-one with producent
-    producent = OneToOneField(Producent, on_delete=models.CASCADE)
+    producent = OneToOneField(Producent, on_delete=models.SET_NULL, null=True)
     
     # one-to-one with czat
     czat = OneToOneField(Czat, on_delete=models.SET_NULL, null=True)
@@ -88,14 +98,18 @@ class Zamowienie(models.Model):
     # one-to-one with reklamacja
     reklamacja = OneToOneField(Reklamacja, on_delete=models.SET_NULL, null=True)
     
-  
+    # many-to-one with klient
+    klient = models.ForeignKey(Klient, on_delete=models.CASCADE)
+    
+    
     
 class Produkt(models.Model):
     id_produktu = models.IntegerField(primary_key=True)
     numer_partii = models.IntegerField()
     cena = models.FloatField()
+    # What to do with desriptions?
     opis = models.CharField(max_length=1000, blank=True)
-    kategoria = models.ManyToManyField(Kategoria) 
+        
     
     # many-to-one with producent
     producent = models.ForeignKey(Producent, on_delete=models.CASCADE) 
@@ -104,4 +118,4 @@ class Produkt(models.Model):
     zamowienie = models.ForeignKey(Zamowienie, on_delete=models.SET_NULL, null=True, verbose_name="zamówienie")
     
     # many-to-many with kategoria (it is saved in kategoria Class)
-    
+    kategoria = models.ManyToManyField(Kategoria) 
