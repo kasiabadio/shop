@@ -106,12 +106,15 @@ class Zamowienie(models.Model):
     
 class Produkt(models.Model):
     objects = None
+    
+    nazwa = models.CharField(max_length=50)
     id_produktu = models.AutoField(primary_key=True)
     numer_partii = models.IntegerField()
     cena = models.FloatField()
-    # What to do with desriptions?
+    
     opis = models.CharField(max_length=1000, blank=True)
-        
+    liczba = models.IntegerField()
+
     # many-to-one with producent
     producent = models.ForeignKey(Producent, on_delete=models.CASCADE) 
     

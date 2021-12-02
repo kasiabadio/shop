@@ -9,7 +9,7 @@ def shop(request):
 
     products = Produkt.objects.all()
     context = {'products': products}
-    return render(request, 'shop/main.html')
+    return render(request, 'shop/main.html', context)
 
 
 # Page for adding product to a database, modifying visibility for existing products
