@@ -7,6 +7,7 @@ from .models import *
 # access: CLIENT, PRODUCENT
 def shop(request):
 
+    
     products = Produkt.objects.all()
     context = {'products': products}
     return render(request, 'shop/main.html', context)
@@ -50,8 +51,10 @@ def cart(request):
 # Page where user can finalize order 
 # access: CLIENT
 def checkout(request):
-    context = {}
-    return render(request, 'shop/checkout.html')
+    
+    orders = Zamowienie.objects.all()
+    context = {'orders': orders}
+    return render(request, 'shop/checkout.html', context)
 
 
 # Page where client or producent can see his messages and write a new one
