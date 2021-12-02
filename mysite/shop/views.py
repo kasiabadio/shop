@@ -1,12 +1,14 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db import connection
-
+from .models import *
 
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
 def shop(request):
-    context = {}
+
+    products = Produkt.objects.all()
+    context = {'products': products}
     return render(request, 'shop/main.html')
 
 

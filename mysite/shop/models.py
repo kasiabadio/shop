@@ -78,12 +78,13 @@ class Reklamacja(models.Model):
 
 
 class Zamowienie(models.Model):
+    objects = None
     
     # Why it didn't show in table?
     class Meta:
         unique_together = (('id_zamowienie', 'klient'),)
     
-    id_zamowienie = models.IntegerField()
+    id_zamowienie = models.IntegerField(null=True)
     czy_oplacone = models.BooleanField(verbose_name="czy opłacone")
     sposob_dostawy = models.CharField(max_length=50, verbose_name="sposób dostawy")
     status = models.IntegerField()
@@ -104,13 +105,13 @@ class Zamowienie(models.Model):
     
     
 class Produkt(models.Model):
+    objects = None
     id_produktu = models.AutoField(primary_key=True)
     numer_partii = models.IntegerField()
     cena = models.FloatField()
     # What to do with desriptions?
     opis = models.CharField(max_length=1000, blank=True)
         
-    
     # many-to-one with producent
     producent = models.ForeignKey(Producent, on_delete=models.CASCADE) 
     
@@ -119,3 +120,13 @@ class Produkt(models.Model):
     
     # many-to-many with kategoria (it is saved in kategoria Class)
     kategoria = models.ManyToManyField(Kategoria) 
+
+    image = models.ImageField(null=True, blank=True)
+    
+
+    @property
+    def imageURL(self):
+        if self.image:
+            return getattr(self.image, 'url', None)
+        return None
+    
