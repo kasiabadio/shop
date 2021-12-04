@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ManyToManyField, OneToOneField
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
 
 
 class Kategoria(models.Model):
@@ -17,18 +17,7 @@ class Kategoria(models.Model):
         return self.nazwa_kategorii
     
 
-class Producent(models.Model):
-    id_producenta = models.AutoField(primary_key=True)
-    imie = models.CharField(max_length=50, verbose_name="imię", default="null")
-    nazwisko = models.CharField(max_length=50, default="null")
-    adres = models.CharField(max_length=50, default="null")
-    login = models.CharField(max_length=50)
-    #haslo = models.CharField(max_length=50, verbose_name="hasło")
-    
-    def __str__(self):
-        return self.imie + " " + self.nazwisko
-    
-    
+
 class MyAccountManager(BaseUserManager):
     def create_user(self, email, username, imie, nazwisko, password=None):
         if not email:
@@ -52,6 +41,7 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
     
+    
     def create_superuser(self, email, username, imie, nazwisko, password):
         user = self.create_user(
             email=self.normalize_email(email),
@@ -66,7 +56,45 @@ class MyAccountManager(BaseUserManager):
         user.is_superuser = True
         user.save(using=self._db)
         return user
+    
+    
+    
+
+    
+class Producent(AbstractBaseUser):
+    # custom producent fields
+    id_producenta = models.AutoField(primary_key=True)
+    imie = models.CharField(max_length=50, verbose_name="imię", default="null")
+    nazwisko = models.CharField(max_length=50, default="null")
+    adres = models.CharField(max_length=50, default="null")
+    
+    # required when creating custom producent model
+    email = models.EmailField(verbose_name="email", max_length=60, unique=True) 
+    username = models.CharField(max_length=50)
+    date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
+    last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
+    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    
+    # email will be used to login
+    USERNAME_FIELD = 'email'
+    # when register must have username
+    REQUIRED_FIELDS = ['username', 'imie', 'nazwisko']
+    
+    objects = MyAccountManager()
+    
+    def __str__(self):
+        return self.imie + " " + self.nazwisko
+    
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
+    
+    def has_module_perms(self, app_label):
+        return True
         
+    
     
 class Klient(AbstractBaseUser):
     # custom user fields
@@ -74,9 +102,7 @@ class Klient(AbstractBaseUser):
     imie = models.CharField(max_length=50, verbose_name="imię", default="null")
     nazwisko = models.CharField(max_length=50, default="null")
     adres_dostawy = models.CharField(max_length=50, default="null")
-    #haslo = models.CharField(max_length=50, verbose_name="hasło")
-    #login = models.CharField(max_length=50)  --> EMAIL, USERNAME
-    
+
     # required when creating custom user model
     email = models.EmailField(verbose_name="email", max_length=60, unique=True) 
     username = models.CharField(max_length=50)
@@ -104,8 +130,6 @@ class Klient(AbstractBaseUser):
     def has_module_perms(self, app_label):
         return True
     
-    
-
 
 class Czat(models.Model):
     
