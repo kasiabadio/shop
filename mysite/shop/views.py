@@ -6,7 +6,6 @@ from .models import *
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
 def shop(request):
-
     
     products = Produkt.objects.all()
     context = {'products': products}
@@ -44,8 +43,11 @@ def product(request):
 # Page where user can see his order which contains orders from specific producents
 # access: CLIENT
 def cart(request):
-    context = {}
-    return render(request, 'shop/cart.html')
+    
+    orders_for_user = Zamowienie.objects.all().filter(klient=1)
+    current_user = 1
+    context = {'orders_for_user': orders_for_user, 'current_user': current_user}
+    return render(request, 'shop/cart.html', context)
 
 
 # Page where user can finalize order 
