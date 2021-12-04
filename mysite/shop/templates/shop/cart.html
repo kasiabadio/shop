@@ -4,10 +4,9 @@
 <div class="row">
 
     <h2>current_user: {{current_user}}</h2>
-    {% for order in orders_for_user %}
-    
-    <div class="col-lg-4">
 
+    {% for order in orders_for_user %}
+    <div class="col-lg-4">
         <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
         <h8><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h8>
         <h8><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h8>
@@ -18,6 +17,7 @@
         <h8><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h8>       
     </div>
     {% endfor %}
+
     
 </div> 
 {% endblock content %}

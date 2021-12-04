@@ -46,6 +46,7 @@ def cart(request):
     
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
     current_user = 1
+    
     context = {'orders_for_user': orders_for_user, 'current_user': current_user}
     return render(request, 'shop/cart.html', context)
 
@@ -54,8 +55,11 @@ def cart(request):
 # access: CLIENT
 def checkout(request):
     
+    orders_for_user = Zamowienie.objects.all().filter(klient=1)
+    current_user = 1
+    
     orders = Zamowienie.objects.all()
-    context = {'orders': orders}
+    context = {'orders': orders, 'orders_for_user': orders_for_user, 'current_user': current_user}
     return render(request, 'shop/checkout.html', context)
 
 

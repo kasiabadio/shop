@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ManyToManyField, OneToOneField
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
@@ -22,32 +23,88 @@ class Producent(models.Model):
     nazwisko = models.CharField(max_length=50, default="null")
     adres = models.CharField(max_length=50, default="null")
     login = models.CharField(max_length=50)
-    haslo = models.CharField(max_length=50, verbose_name="hasło")
+    #haslo = models.CharField(max_length=50, verbose_name="hasło")
     
     def __str__(self):
         return self.imie + " " + self.nazwisko
     
     
+class MyAccountManager(BaseUserManager):
+    def create_user(self, email, username, imie, nazwisko, password=None):
+        if not email:
+            raise ValueError("Users must have an email address")
+        if not username:
+            raise ValueError("Users must have an username")
+        if not imie:
+            raise ValueError("Users must have name")
+        if not nazwisko:
+            raise ValueError("Users must have surname")
+  
+        
+        user = self.model(
+            email=self.normalize_email(email),
+            username=username,
+            imie=imie,
+            nazwisko=nazwisko
+        )
+        
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+    def create_superuser(self, email, username, imie, nazwisko, password):
+        user = self.create_user(
+            email=self.normalize_email(email),
+            password=password,
+            username=username,
+            imie=imie,
+            nazwisko=nazwisko
+        )
+        
+        user.is_admin = True
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+        
+    
 class Klient(AbstractBaseUser):
+    # custom user fields
     id_klienta = models.AutoField(primary_key=True)
     imie = models.CharField(max_length=50, verbose_name="imię", default="null")
     nazwisko = models.CharField(max_length=50, default="null")
     adres_dostawy = models.CharField(max_length=50, default="null")
-    login = models.CharField(max_length=50)
-    haslo = models.CharField(max_length=50, verbose_name="hasło")
+    #haslo = models.CharField(max_length=50, verbose_name="hasło")
+    #login = models.CharField(max_length=50)  --> EMAIL, USERNAME
     
-    # custom user fields
-    # email = models.EmailField(verbose_name="email", max_length=60, unique=True)
-    # username = login
-    # date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
-    # last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
-    # is_admin = models.BooleanField(default=False)
-    # is_active = models.BooleanField(default=True)
-    # is_staff = models.BooleanField(default=False)
-    # is_superuser = models.BooleanField(default=False)
+    # required when creating custom user model
+    email = models.EmailField(verbose_name="email", max_length=60, unique=True) 
+    username = models.CharField(max_length=50)
+    date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
+    last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
+    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    
+    # email will be used to login
+    USERNAME_FIELD = 'email'
+    # when register must have username
+    REQUIRED_FIELDS = ['username', 'imie', 'nazwisko']
+    
+    objects = MyAccountManager()
+    
     
     def __str__(self):
-        return self.imie + " " + self.nazwisko
+        return self.username + " " + self.imie + " " + self.nazwisko
+    
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
+    
+    def has_module_perms(self, app_label):
+        return True
+    
+    
 
 
 class Czat(models.Model):
