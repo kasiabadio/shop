@@ -2,10 +2,16 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ManyToManyField, OneToOneField
 
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
 class Kategoria(models.Model):
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['nazwa_kategorii'])
+        ]
+        
     id_kategorii = models.AutoField(primary_key=True)
     nazwa_kategorii = models.CharField(max_length=50, default="null")
     id_nadkategorii = models.IntegerField()
@@ -57,18 +63,23 @@ class MyAccountManager(BaseUserManager):
         user.save(using=self._db)
         return user
     
+ 
+class User(AbstractBaseUser):
     
+    class Meta:
+        indexes = [
+            models.Index(fields=['imie',]),
+            models.Index(fields=['nazwisko',]),
+            models.Index(fields=['email',]),
+            models.Index(fields=['username',]),
+        ]
     
-
-    
-class Producent(AbstractBaseUser):
-    # custom producent fields
-    id_producenta = models.AutoField(primary_key=True)
+    id_user = models.AutoField(primary_key=True)
+    is_producent = models.BooleanField(default=False)
+    is_klient = models.BooleanField(default=False)
     imie = models.CharField(max_length=50, verbose_name="imię", default="null")
     nazwisko = models.CharField(max_length=50, default="null")
-    adres = models.CharField(max_length=50, default="null")
-    
-    # required when creating custom producent model
+
     email = models.EmailField(verbose_name="email", max_length=60, unique=True) 
     username = models.CharField(max_length=50)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
@@ -85,52 +96,38 @@ class Producent(AbstractBaseUser):
     
     objects = MyAccountManager()
     
-    def __str__(self):
-        return self.imie + " " + self.nazwisko
-    
     def has_perm(self, perm, obj=None):
         return self.is_admin
     
     def has_module_perms(self, app_label):
         return True
+    
+    
+class Producent(models.Model):
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['adres',]),
+        ]
+        
+    # custom producent fields
+    id_producenta = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    adres = models.CharField(max_length=50, default="null")
+
+       
+class Klient(models.Model):
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['adres_dostawy',]),
+        ]
         
     
-    
-class Klient(AbstractBaseUser):
     # custom user fields
-    id_klienta = models.AutoField(primary_key=True)
-    imie = models.CharField(max_length=50, verbose_name="imię", default="null")
-    nazwisko = models.CharField(max_length=50, default="null")
+    id_klienta = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     adres_dostawy = models.CharField(max_length=50, default="null")
 
-    # required when creating custom user model
-    email = models.EmailField(verbose_name="email", max_length=60, unique=True) 
-    username = models.CharField(max_length=50)
-    date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
-    last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
-    is_admin = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
     
-    # email will be used to login
-    USERNAME_FIELD = 'email'
-    # when register must have username
-    REQUIRED_FIELDS = ['username', 'imie', 'nazwisko']
-    
-    objects = MyAccountManager()
-    
-    
-    def __str__(self):
-        return self.username + " " + self.imie + " " + self.nazwisko
-    
-    def has_perm(self, perm, obj=None):
-        return self.is_admin
-    
-    def has_module_perms(self, app_label):
-        return True
-    
-
 class Czat(models.Model):
     
     class Meta:
@@ -151,6 +148,12 @@ class Wiadomosc(models.Model):
     
     class Meta:
         unique_together = (('id_wiadomosc', 'czat'),)
+        indexes = [
+            models.Index(fields=['tresc',]),
+            models.Index(fields=['data',]),
+            models.Index(fields=['czy_odczytana',]),
+            models.Index(fields=['flaga',]),
+        ]
     
     id_wiadomosc = models.IntegerField(null=True)
     tresc = models.CharField(max_length=50, verbose_name="treść")
@@ -163,6 +166,14 @@ class Wiadomosc(models.Model):
     
     
 class Reklamacja(models.Model):
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['tresc',]),
+            models.Index(fields=['typ_reklamacji',]),
+            models.Index(fields=['status',]),
+        ]
+        
     tresc = models.CharField(max_length=1000, verbose_name="treść")
     typ_reklamacji = models.IntegerField()
     status = models.IntegerField() 
@@ -172,21 +183,21 @@ class Reklamacja(models.Model):
 class Zamowienie(models.Model):
     objects = None
     
-    # Why it didn't show in table?
     class Meta:
         unique_together = (('id_zamowienie', 'klient'),)
+        indexes = [
+            models.Index(fields=['czy_oplacone',]),
+            models.Index(fields=['sposob_dostawy',]),
+            models.Index(fields=['status',]),
+            models.Index(fields=['koszt',]),
+        ]
     
     id_zamowienie = models.IntegerField(null=True)
     czy_oplacone = models.BooleanField(verbose_name="czy opłacone")
     sposob_dostawy = models.CharField(max_length=50, verbose_name="sposób dostawy")
     status = models.IntegerField()
     koszt = models.FloatField()
-    
-    # problem jest taki, że chciałabym, żeby zamówienia, które są przypisane konkretnemu klientowi,
-    # były podzielone na producentów, a na razie jest tak, że zamówienie musi mieć unikalnych producentów
-    # może jak usunę to pole i będę sortowała po produktach (a każdy produkt ma przypisanego producenta, to się to da tak załatwić)
-    # na razie jest ustawione na null
-    
+
     # one-to-one with producent
     producent = OneToOneField(Producent, on_delete=models.SET_NULL, null=True)
     
@@ -202,6 +213,18 @@ class Zamowienie(models.Model):
     
     
 class Produkt(models.Model):
+    
+    class Meta:
+        
+        indexes = [
+            models.Index(fields=['nazwa',]),
+            models.Index(fields=['numer_partii',]),
+            models.Index(fields=['cena',]),
+            models.Index(fields=['opis',]),
+            models.Index(fields=['liczba',]),
+            models.Index(fields=['image',]),
+        ]
+    
     objects = None
     
     nazwa = models.CharField(max_length=50)
