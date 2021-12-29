@@ -2,6 +2,24 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db import connection
 from .models import *
+from django.db import connection
+from django.template.defaulttags import register
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+# # Calulate sum of all orders of a user
+# def calculate_sum_koszyk(klient):
+#     with connection.cursor() as cursor:
+#         sum_koszyk = cursor.callproc('calculate_sum_koszyk', [klient])
+#     return sum_koszyk
+
+# Calculate sum of a single order (sql1.py)
+# def calculate_sum_zamowienie(zamowienie):
+#     with connection.cursor() as cursor:
+#         sum_zamowienie = cursor.callproc('calculate_sum_zamowienie', [zamowienie])
+#     return sum_zamowienie
 
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
@@ -44,10 +62,23 @@ def product(request):
 # access: CLIENT
 def cart(request):
     
+    # TODO: filter elements by current user id and display only his order
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
     current_user = 1
     
-    context = {'orders_for_user': orders_for_user, 'current_user': current_user}
+    # calculate sum of a cart
+    cart_sum = 0
+    for order in orders_for_user:
+        cart_sum += order.get_zamowienie_total
+        
+    # get all products for each order
+    cart_products = {}
+    for order in orders_for_user:
+        products = Produkt.objects.all().filter(zamowienie_id=order.id_zamowienie)
+        if order.id_zamowienie not in cart_products:
+            cart_products[order.id_zamowienie] = products
+    
+    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_sum': cart_sum, 'cart_products': cart_products}
     return render(request, 'shop/cart.html', context)
 
 
@@ -55,8 +86,11 @@ def cart(request):
 # access: CLIENT
 def checkout(request):
     
+    # TODO: filter elements by current user id and display only his order (same as in cart)
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
     current_user = 1
+    
+    # TODO: calculate sum of a cart
     
     orders = Zamowienie.objects.all()
     context = {'orders': orders, 'orders_for_user': orders_for_user, 'current_user': current_user}

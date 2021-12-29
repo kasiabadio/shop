@@ -1,23 +1,52 @@
 {% extends 'shop/main.html' %}
 {% load static %}
 {% block content %}
+
 <div class="row">
+    <div class="column left" style="background-color:#aaa;"> 
+        <div class="row">
+            <h2>COLUMN 1</h2>
+            <h2>current_user: {{current_user}}</h2>
+        
+            {% for order in orders_for_user %}
+            <div class="col-lg-4" style="background-color:#ccc;">
 
-    <h2>current_user: {{current_user}}</h2>
+                <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
+                <h8><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h8>
+                <h8><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h8>
+                <h8><em style="color:orange;">status:</em> {{order.status}},</h8>
+                <h8><em style="color:orange;">koszt:</em> {{order.koszt}},</h8>
+                <h8><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h8>
+                <h8><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h8>
+                <h8><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h8>
 
-    {% for order in orders_for_user %}
-    <div class="col-lg-4">
-        <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
-        <h8><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h8>
-        <h8><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h8>
-        <h8><em style="color:orange;">status:</em> {{order.status}},</h8>
-        <h8><em style="color:orange;">koszt:</em> {{order.koszt}},</h8>
-        <h8><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h8>
-        <h8><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h8>
-        <h8><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h8>       
+                {% if order.id_zamowienie in cart_products.keys %}
+
+                    {% for key, products in cart_products.items %}
+                        {% if key == order.id_zamowienie %}
+                            {% for product in products %}
+                                <h6><em style="color:red;">nazwa: {{product.nazwa}}</h4>
+                                <h8><em style="color:red;">id produktu: {{product.id_produktu}}</h8>
+                                <h8><em style="color:red;">numer partii: {{product.numer_partii}}</h8>
+                                <h8><em style="color:red;">cena: {{product.cena}}</h8>
+                                <h8><em style="color:red;">opis: {{product.opis}}</h8>
+                                <h8><em style="color:red;">id zamowienia: {{product.zamowienie_id}}</h8>
+                                <h8><em style="color:red;">id producenta: {{product.producent_id}}</h8>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+            
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div> 
     </div>
-    {% endfor %}
-
-    
+    <div class="column right" style="background-color:#bbb;">
+        <h2>COLUMN 2</h2>
+        <h2>cart total: {{cart_sum}}</h2>
+    </div>
 </div> 
+
+
 {% endblock content %}

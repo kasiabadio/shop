@@ -210,6 +210,12 @@ class Zamowienie(models.Model):
     # many-to-one with klient
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE)
     
+    # product has many zamowienie, so we sum total of zamowienie where its id is in product
+    @property
+    def get_zamowienie_total(self):
+        produktitems = self.produkt_set.all()
+        total = sum([item.cena for item in produktitems])
+        return total
     
     
 class Produkt(models.Model):
