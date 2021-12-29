@@ -59,17 +59,37 @@
 
     <div class="col-md-4" style="background-color:#aaa;">
         <h2>Podsumowanie</h2>
-        <h4>Wybierz zamówienie do zapłaty (button)</h4>
+        
+        <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
+            <h10>Wybierz zamówienie do zapłaty</h10>
+            <br>
+            <select class="form-control">
+                {% for order in orders_for_user %}
+                    <option>{{order.id_zamowienie}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
 
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
-            <h4>Suma w koszyku</h4>
-            <h10>Suma: {{cart_sum}}</h10>
-            <h10>Zamawiam (button)</h10>
+            <h4>Suma zamówienia</h4>
+            <h10>Suma: {{cart_sum}} zł</h10>
+            <br>
+            <button class="btn btn-primary" type="submit">Zamawiam</button>
         </div>
+        <br>
 
+        
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
             <h4>Czat</h4>
             <h10>Wybierz producenta</h10>
+            <br>
+            <br>
+            <select class="form-control">
+                {% for producent in cart_producents %}
+                    <option>{{producent.producent_id}}</option>
+                {% endfor %}
+            </select>
         </div> 
         
     </div>

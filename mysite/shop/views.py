@@ -73,16 +73,21 @@ def cart(request):
         cart_sum += order.get_zamowienie_total
         
     # get all products for each order
+    # get producents from all orders 
     cart_products = {}
+    cart_producents = []
     for order in orders_for_user:
+        cart_producents.append(order.producent_id)
         products = Produkt.objects.all().filter(zamowienie_id=order.id_zamowienie)
         if order.id_zamowienie not in cart_products:
             cart_products[order.id_zamowienie] = products
             
     shipping_type = Zamowienie.sposob_dostawy
     
+    
+    
     context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_sum': cart_sum, 
-               'cart_products': cart_products, 'shipping_type': shipping_type}
+               'cart_products': cart_products, 'shipping_type': shipping_type, 'cart_producents': cart_producents}
     return render(request, 'shop/cart.html', context)
 
 
