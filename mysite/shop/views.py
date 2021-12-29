@@ -62,6 +62,7 @@ def product(request):
 # access: CLIENT
 def cart(request):
     
+    
     # TODO: filter elements by current user id and display only his order
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
     current_user = 1
@@ -77,8 +78,11 @@ def cart(request):
         products = Produkt.objects.all().filter(zamowienie_id=order.id_zamowienie)
         if order.id_zamowienie not in cart_products:
             cart_products[order.id_zamowienie] = products
+            
+    shipping_type = Zamowienie.sposob_dostawy
     
-    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_sum': cart_sum, 'cart_products': cart_products}
+    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_sum': cart_sum, 
+               'cart_products': cart_products, 'shipping_type': shipping_type}
     return render(request, 'shop/cart.html', context)
 
 

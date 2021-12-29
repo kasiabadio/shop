@@ -3,50 +3,76 @@
 {% block content %}
 
 <div class="row">
-    <div class="column left" style="background-color:#aaa;"> 
-        <div class="row">
-            <h2>COLUMN 1</h2>
-            <h2>current_user: {{current_user}}</h2>
-        
-            {% for order in orders_for_user %}
-            <div class="col-lg-4" style="background-color:#ccc;">
-
-                <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
-                <h8><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h8>
-                <h8><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h8>
-                <h8><em style="color:orange;">status:</em> {{order.status}},</h8>
-                <h8><em style="color:orange;">koszt:</em> {{order.koszt}},</h8>
-                <h8><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h8>
-                <h8><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h8>
-                <h8><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h8>
-
-                {% if order.id_zamowienie in cart_products.keys %}
-
-                    {% for key, products in cart_products.items %}
-                        {% if key == order.id_zamowienie %}
-                            {% for product in products %}
-                                <h6><em style="color:red;">nazwa: {{product.nazwa}}</h4>
-                                <h8><em style="color:red;">id produktu: {{product.id_produktu}}</h8>
-                                <h8><em style="color:red;">numer partii: {{product.numer_partii}}</h8>
-                                <h8><em style="color:red;">cena: {{product.cena}}</h8>
-                                <h8><em style="color:red;">opis: {{product.opis}}</h8>
-                                <h8><em style="color:red;">id zamowienia: {{product.zamowienie_id}}</h8>
-                                <h8><em style="color:red;">id producenta: {{product.producent_id}}</h8>
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
+    <div class="col-md-8" style="background-color:#aaa;"> 
+            <h2>Koszyk</h2>
+            <h2>Aktualny użytkownik: {{current_user}}</h2>
             
-                {% endif %}
+            {% for order in orders_for_user %}
+                <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
 
-            </div>
+                    <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
+                    <h10><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h10>
+                    <h10><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h10>
+                    <h10><em style="color:orange;">status:</em> {{order.status}},</h10>
+                    <h10><em style="color:orange;">koszt:</em> {{order.koszt}},</h10>
+                    <h10><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h10>
+                    <h10><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h10>
+                    <h10><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h10>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                            <th scope="col">Nazwa</th>
+                            <th scope="col">Id produktu</th>
+                            <th scope="col">Numer partii</th>
+                            <th scope="col">Cena</th>
+                            <th scope="col">Opis</th>
+                            <th scope="col">Id zamówienia</th>
+                            <th scope="col">Id producenta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            {% for key, products in cart_products.items %}
+                                {% if key == order.id_zamowienie %}
+                                    {% for product in products %}
+                                    <tr>
+                                        <td>{{product.nazwa}}</td>
+                                        <td>{{product.id_produktu}}</td>
+                                        <td>{{product.numer_partii}}</td>
+                                        <td>{{product.cena}}</td>
+                                        <td>{{product.opis}}</td>
+                                        <td>{{product.zamowienie_id}}</td>
+                                        <td>{{product.producent_id}}</td>
+                                    </tr> 
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                        </tbody>
+                    </table>
+                                              
+                </div> 
             {% endfor %}
-        </div> 
     </div>
-    <div class="column right" style="background-color:#bbb;">
-        <h2>COLUMN 2</h2>
-        <h2>cart total: {{cart_sum}}</h2>
-    </div>
-</div> 
 
+
+    <div class="col-md-4" style="background-color:#aaa;">
+        <h2>Podsumowanie</h2>
+        <h4>Wybierz zamówienie do zapłaty (button)</h4>
+
+        <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
+            <h4>Suma w koszyku</h4>
+            <h10>Suma: {{cart_sum}}</h10>
+            <h10>Zamawiam (button)</h10>
+        </div>
+
+        <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
+            <h4>Czat</h4>
+            <h10>Wybierz producenta</h10>
+        </div> 
+        
+    </div>
+</div>
 
 {% endblock content %}
