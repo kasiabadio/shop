@@ -2,21 +2,99 @@
 {% load static %}
 {% block content %}
 <div class="row">
-    
-    <h2>current_user: {{current_user}}</h2>
+    <div class="col-md-6" style="background-color:#aaa;"> 
+        <h2>Szczegóły</h2>
 
-    {% for order in orders_for_user %}
-    <div class="col-lg-4">
-        <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
-        <h8><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h8>
-        <h8><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h8>
-        <h8><em style="color:orange;">status:</em> {{order.status}},</h8>
-        <h8><em style="color:orange;">koszt:</em> {{order.koszt}},</h8>
-        <h8><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h8>
-        <h8><em style="color:orange;">klient_id:</em> {{order.klient_id}},</h8>
-        <h8><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h8>
-        <h8><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h8>        
+        <form class="form-horizontal">
+            <div class="form-group">
+              <label for="imie">Imię</label>
+              <input type="text" class="form-control" id="imie" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="nazwisko">Nazwisko</label>
+              <input type="text" class="form-control" id="nazwisko" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" class="form-control" id="email" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="telefon">Telefon</label>
+                <input type="text" class="form-control" id="telefon" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="adresdostawy">Adres dostawy</label>
+                <input type="text" class="form-control" id="adresdostawy" placeholder="">
+            </div>
+        </form>
+        <br>
     </div>
-    {% endfor %}
-</div>   
+
+
+    <div class="col-md-6" style="background-color:#aaa;">
+        <h2>Twoje zamówienie</h2>
+        <br>
+
+        <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
+            <table class="table">
+                <thead>
+                    <tr>
+                    <th scope="col">Nazwa</th>
+                    <th scope="col">Liczba sztuk</th>
+                    <th scope="col">Pod-suma</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+    
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>Suma</td>
+                        <td>... zł</td>
+                    </tr>
+    
+                </tbody>
+            </table>    
+        </div>
+
+        <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>Dostawa</td>
+                        <td>... zł</td>
+                    </tr>
+    
+                </tbody>
+            </table>    
+        </div>
+
+        <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>Całość</td>
+                        <td>... zł</td>
+                    </tr>
+    
+                </tbody>
+            </table>    
+        </div>
+        
+        <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
+            <a class="btn btn-primary" href='#' role="button">Zapłać</a>
+        </div>
+        <br>
+    </div>
+</div>
 {% endblock content %}
