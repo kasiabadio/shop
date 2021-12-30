@@ -79,7 +79,7 @@
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
             <h10>Wybierz zamówienie do zapłaty</h10>
             <br>
-            <select class="form-control">
+            <select id="order-selection-cart" onchange="order_cart()" class="form-control">
                 {% for order in orders_for_user %}
                     <option>{{order.id_zamowienie}}</option>
                 {% endfor %}
@@ -88,7 +88,8 @@
         <br>
 
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
-            <h4>Szczegóły zamówienia</h4>
+            <h10>Szczegóły zamówienia </h10>
+            <h4 type="value" id="order-details"></h4>
         </div>
         <br>
 
@@ -102,6 +103,7 @@
 
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
             <h4>Czat</h4>
+            <h4>Producent: </h4>
         </div> 
         <br>
     </div>

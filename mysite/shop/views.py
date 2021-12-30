@@ -1,13 +1,27 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.db import connection
 from .models import *
 from django.db import connection
 from django.template.defaulttags import register
+from rest_framework.decorators import api_view
+import json
+
+
 
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+#@api_view(["POST"])
+def update_item(request):
+    # json.loads -> parse json
+    # json.dumps -> convert into json 
+    #data = json.loads(json.dumps(request.data))
+    return JsonResponse('Item was added', safe=False)
+    
 
 # # Calulate sum of all orders of a user
 # def calculate_sum_koszyk(klient):
@@ -27,6 +41,7 @@ def shop(request):
     
     products = Produkt.objects.all()
     context = {'products': products}
+            
     return render(request, 'shop/main.html', context)
 
 
@@ -62,10 +77,16 @@ def product(request):
 # access: CLIENT
 def cart(request):
     
-    # TODO: filter elements by current user id and display only his order
+    # if request.user.is_authenticated:
+        
+    #     klient = request.user.klient
+        
+        # filter elements by current user id and display only his order
+        #orders_for_user = Zamowienie.objects.get_or_create(klient=klient)
+        
     # TODO: select only those orders which were not paid
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
-    current_user = 1
+    current_user=1
     
     # calculate sum of a cart
     cart_total = 0
@@ -102,6 +123,17 @@ def cart(request):
             cart_sum[order.id_zamowienie] = order_sum
             
     shipping_type = Zamowienie.sposob_dostawy
+        
+    # else:
+    #     orders_for_user = []
+    #     current_user = -1
+    #     cart_total = -1
+    #     cart_products = []
+    #     cart_sum = []
+    #     shipping_type = 0
+    #     cart_producents = []
+    #     all = []
+    
     
     context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_total': cart_total, 
                'cart_products': cart_products, 'cart_sum': cart_sum, 'shipping_type': shipping_type, 
