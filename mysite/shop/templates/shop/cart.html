@@ -5,12 +5,13 @@
 <div class="row">
     <div class="col-md-8" style="background-color:#aaa;"> 
             <h2>Koszyk</h2>
-            <h2>Aktualny użytkownik: {{current_user}}</h2>
+            <h12>Aktualny użytkownik: {{current_user}}</h12>
             
             {% for order in orders_for_user %}
                 <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
 
-                    <h4>id_zamowienie: {{order.id_zamowienie}}</h4>
+                    <h4>Numer zamówienia: {{order.id_zamowienie}}</h4>
+                    <h4>Suma zamówienia: {{cart_sum|get_item:order.id_zamowienie|floatformat:2}} zł</h4>
                     <h10><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h10>
                     <h10><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h10>
                     <h10><em style="color:orange;">status:</em> {{order.status}},</h10>
@@ -18,37 +19,51 @@
                     <h10><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h10>
                     <h10><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h10>
                     <h10><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h10>
+                    <br>
 
+                    <h8>Produkty w zamówieniu</h8>
+                    
                     <table class="table">
                         <thead>
                             <tr>
                             <th scope="col">Nazwa</th>
                             <th scope="col">Id produktu</th>
                             <th scope="col">Numer partii</th>
-                            <th scope="col">Cena</th>
+                            <th scope="col">Cena za sztukę</th>
                             <th scope="col">Opis</th>
-                            <th scope="col">Id zamówienia</th>
                             <th scope="col">Id producenta</th>
+                            
+                            <th scope="col">Liczba sztuk</th>
+                            <th scope="col">Pod-suma</th>
                             </tr>
                         </thead>
                         <tbody>
-                            
                             {% for key, products in cart_products.items %}
+                                
                                 {% if key == order.id_zamowienie %}
                                     {% for product in products %}
                                     <tr>
                                         <td>{{product.nazwa}}</td>
                                         <td>{{product.id_produktu}}</td>
                                         <td>{{product.numer_partii}}</td>
-                                        <td>{{product.cena}}</td>
+                                        <td>{{product.cena|floatformat:2}} zł</td>
                                         <td>{{product.opis}}</td>
-                                        <td>{{product.zamowienie_id}}</td>
                                         <td>{{product.producent_id}}</td>
-                                    </tr> 
+                                        
+                                        {% for orderproduct in orderproducts_all %}
+                                            {% if orderproduct.zamowienie_id == key %}
+                                                {% if orderproduct.produkt_id == product.id_produktu %}
+                                                    <td>{{orderproduct.quantity}}</td>
+                                                    <td>{{orderproduct.get_total|floatformat:2}} zł</td>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                    </tr>
                                     {% endfor %}
                                 {% endif %}
+
                             {% endfor %}
-                            
                         </tbody>
                     </table>
                                               
@@ -72,24 +87,20 @@
         <br>
 
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
-            <h4>Suma zamówienia</h4>
-            <h10>Suma: {{cart_sum}} zł</h10>
-            <br>
-            <button class="btn btn-primary" type="submit">Zamawiam</button>
+            <h4>Szczegóły zamówienia</h4>
         </div>
         <br>
 
-        
+        <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
+            <h4>Suma zamówienia</h4>
+            <h10>Suma: {{cart_total|floatformat:2}} zł</h10>
+            <br>
+            <a class="btn btn-primary" href="{% url 'checkout' %}" role="button">Zamawiam</a>
+        </div>
+        <br>
+
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
             <h4>Czat</h4>
-            <h10>Wybierz producenta</h10>
-            <br>
-            <br>
-            <select class="form-control">
-                {% for producent in cart_producents %}
-                    <option>{{producent.producent_id}}</option>
-                {% endfor %}
-            </select>
         </div> 
         
     </div>

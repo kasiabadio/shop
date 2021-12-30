@@ -62,32 +62,51 @@ def product(request):
 # access: CLIENT
 def cart(request):
     
-    
     # TODO: filter elements by current user id and display only his order
+    # TODO: select only those orders which were not paid
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
     current_user = 1
     
     # calculate sum of a cart
-    cart_sum = 0
-    for order in orders_for_user:
-        cart_sum += order.get_zamowienie_total
-        
+    cart_total = 0
+    
     # get all products for each order
     # get producents from all orders 
     cart_products = {}
+    cart_sum = {}
+    products_sum = {}
     cart_producents = []
+    all = ZamowienieProdukt.objects.all()
     for order in orders_for_user:
         cart_producents.append(order.producent_id)
-        products = Produkt.objects.all().filter(zamowienie_id=order.id_zamowienie)
+        
+        # get all products id's in an order
+        orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=order.id_zamowienie)
+
+        # get all products info from products table having orderproducts info
+        orderproducts_all = []
+        order_sum = 0
+        for zamowienieproduct in orderproducts:
+            product = Produkt.objects.get(id_produktu=zamowienieproduct.produkt_id)
+            orderproducts_all.append(product)
+            order_sum += zamowienieproduct.get_total
+            
+        cart_total += order_sum
+        
+        # add all products to cart_products dictionary
         if order.id_zamowienie not in cart_products:
-            cart_products[order.id_zamowienie] = products
+            cart_products[order.id_zamowienie] = orderproducts_all
+        
+        # add cart sum to cart_sum dictionary
+        if order.id_zamowienie not in cart_sum:
+            cart_sum[order.id_zamowienie] = order_sum
             
     shipping_type = Zamowienie.sposob_dostawy
     
+    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_total': cart_total, 
+               'cart_products': cart_products, 'cart_sum': cart_sum, 'shipping_type': shipping_type, 
+               'cart_producents': cart_producents, 'orderproducts_all': all}
     
-    
-    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_sum': cart_sum, 
-               'cart_products': cart_products, 'shipping_type': shipping_type, 'cart_producents': cart_producents}
     return render(request, 'shop/cart.html', context)
 
 
@@ -99,7 +118,7 @@ def checkout(request):
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
     current_user = 1
     
-    # TODO: calculate sum of a cart
+    # TODO: calculate sum 
     
     orders = Zamowienie.objects.all()
     context = {'orders': orders, 'orders_for_user': orders_for_user, 'current_user': current_user}

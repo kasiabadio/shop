@@ -213,8 +213,8 @@ class Zamowienie(models.Model):
     # product has many zamowienie, so we sum total of zamowienie where its id is in product
     @property
     def get_zamowienie_total(self):
-        produktitems = self.produkt_set.all()
-        total = sum([item.cena for item in produktitems])
+        zamowienieproduktitems = self.zamowienieprodukt_set.all()
+        total = sum([item.get_total for item in zamowienieproduktitems])
         return total
     
     
@@ -244,8 +244,8 @@ class Produkt(models.Model):
     # many-to-one with producent
     producent = models.ForeignKey(Producent, on_delete=models.CASCADE) 
     
-    # many-to-one with zamowienie   
-    zamowienie = models.ForeignKey(Zamowienie, on_delete=models.SET_NULL, null=True, verbose_name="zamówienie")
+    # many-to-one with zamowienie   --->  instead added ZamowienieProdukt class
+    # zamowienie = models.ForeignKey(Zamowienie, on_delete=models.SET_NULL, null=True, verbose_name="zamówienie")
     
     # many-to-many with kategoria (it is saved in kategoria Class)
     kategoria = models.ManyToManyField(Kategoria) 
@@ -259,3 +259,19 @@ class Produkt(models.Model):
             return getattr(self.image, 'url', None)
         return None
     
+
+# A single order can have many items, each item in order has its quantity
+class ZamowienieProdukt(models.Model):
+    objects = None
+    
+    # many-to-one with product
+    produkt = models.ForeignKey(Produkt, on_delete=models.SET_NULL, blank=True, null=True)
+    
+    # many-to-one with zamowienie
+    zamowienie = models.ForeignKey(Zamowienie, on_delete=models.SET_NULL, blank=True, null=True)
+    quantity = models.IntegerField(default=0, null=True, blank=True)
+    
+    @property
+    def get_total(self):
+        total = self.produkt.cena * self.quantity
+        return total
