@@ -62,8 +62,11 @@ def orders(request):
 # Displays info about category
 # access: CLIENT, PRODUCENT
 def category(request):
-    context = {}
-    return render(request, 'shop/category.html')
+    
+    products = Produkt.objects.all()
+    context = {'products': products}
+    
+    return render(request, 'shop/category.html', context)
 
 
 # Displays info about product
@@ -79,14 +82,14 @@ def cart(request):
     
     # if request.user.is_authenticated:
         
-    #     klient = request.user.klient
+    # klient = request.user.klient
         
         # filter elements by current user id and display only his order
         #orders_for_user = Zamowienie.objects.get_or_create(klient=klient)
         
     # TODO: select only those orders which were not paid
     orders_for_user = Zamowienie.objects.all().filter(klient=1)
-    current_user=1
+    current_user = 1
     
     # calculate sum of a cart
     cart_total = 0

@@ -2,5 +2,25 @@
 {% load static %}
 {% block content %}
     <h1>Category</h1>
+    <h4>Sortuj</h4>
+    <select class="form-control">
+        <option>Rosnąco według ceny</option>
+        <option>Malejąco według ceny</option>
+    </select>
+
+    <div class="row">
+        {% for product in products %}
+        <div class="col-lg-4">
+            <img class="img-thumbnail" alt="Responsive image" src="{% static 'images/placeholder.png' %}">
+            <div class="box-element product">
+                <h6><strong>{{product.nazwa}}</strong></h6>
+                <hr>
+                <button data-product={{product.id_produktu}} data-action="add" class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
+                <a class="btn btn-outline-success" href="{% url 'product' %}">Zobacz</a>
+                <h4 style="display: inline-block;float: right">{{product.cena|floatformat:2}} zł</h4>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
 {% endblock content %}
