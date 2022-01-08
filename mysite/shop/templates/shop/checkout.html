@@ -33,6 +33,12 @@
 
     <div class="col-md-6" style="background-color:#aaa;">
         <h2>Twoje zamówienie</h2>
+        {% for order in order %}
+            <h4>Numer wybranego zamówienia: {{order.id_zamowienie}}</h4>
+        {% endfor %}
+        
+        <h4 type="value" id="order-selected-in-cart"></h4>
+
         <br>
 
         <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
@@ -45,12 +51,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
-    
+                    {% for product in orderproducts_all %}
+                        <tr>
+                            <td>{{product.nazwa}}</td>                            
+                            {% for orderproduct in orderproducts %}
+                                    {% if orderproduct.produkt_id == product.id_produktu %}
+                                        <td>{{orderproduct.quantity}}</td>
+                                        <td>{{orderproduct.get_total|floatformat:2}} zł</td>
+                                    {% endif %}
+                            {% endfor %} 
+                        </tr>                        
+                    {% endfor %}
+                        
                 </tbody>
             </table>
         </div>
@@ -60,36 +72,14 @@
                 <tbody>
                     <tr>
                         <td>Suma</td>
-                        <td>... zł</td>
+                        <td>{{ order_sum }} zł</td>
                     </tr>
     
                 </tbody>
             </table>    
         </div>
 
-        <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <td>Dostawa</td>
-                        <td>... zł</td>
-                    </tr>
-    
-                </tbody>
-            </table>    
-        </div>
 
-        <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <td>Całość</td>
-                        <td>... zł</td>
-                    </tr>
-    
-                </tbody>
-            </table>    
-        </div>
         
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
             <a class="btn btn-primary" href='#' role="button">Zapłać</a>

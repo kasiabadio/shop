@@ -21,7 +21,7 @@
                     <h10><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h10>
                     <br>
 
-                    <h8>Produkty w zamówieniu</h8>
+                    
                     
                     <table class="table">
                         <thead>
@@ -79,11 +79,13 @@
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
             <h10>Wybierz zamówienie do zapłaty</h10>
             <br>
-            <select id="order-selection-cart" onchange="order_cart()" class="form-control">
+
+            <select id="order-selection-cart" class="form-control">
                 {% for order in orders_for_user %}
                     <option>{{order.id_zamowienie}}</option>
                 {% endfor %}
             </select>
+
         </div>
         <br>
 
@@ -97,7 +99,7 @@
             <h4>Suma zamówienia</h4>
             <h10>Suma: {{cart_total|floatformat:2}} zł</h10>
             <br>
-            <a class="btn btn-primary" href="{% url 'checkout' %}" role="button">Zamawiam</a>
+            <div class="btn btn-primary" onclick="order_cart()" href="{% url 'checkout' %}" role="button">Zamawiam</div>
         </div>
         <br>
 

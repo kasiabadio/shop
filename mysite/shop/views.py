@@ -34,6 +34,9 @@ def update_item(request):
 #     with connection.cursor() as cursor:
 #         sum_zamowienie = cursor.callproc('calculate_sum_zamowienie', [zamowienie])
 #     return sum_zamowienie
+#-----------------------------------------------
+
+    
 
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
@@ -87,8 +90,8 @@ def cart(request):
         # filter elements by current user id and display only his order
         #orders_for_user = Zamowienie.objects.get_or_create(klient=klient)
         
-    # TODO: select only those orders which were not paid
-    orders_for_user = Zamowienie.objects.all().filter(klient=1)
+    # select only those orders which were not paid
+    orders_for_user = Zamowienie.objects.all().filter(klient=1).filter(czy_oplacone=False)
     current_user = 1
     
     # calculate sum of a cart
@@ -145,20 +148,48 @@ def cart(request):
     return render(request, 'shop/cart.html', context)
 
 
+@api_view(["POST"])
+def curr_order_number(request):
+    
+    data = json.loads(json.dumps(request.data))
+    order_number = int(float(data['order_number']))
+    print('Order number: ', order_number, type(order_number))
+    
+    # change status from 0 (in cart) to 1 (in checkout)
+    
+    order = Zamowienie.objects.get(id=order_number)
+    order.status = 1
+    order.save()
+    #print('Order number: ', order_number)
+    return JsonResponse('Order number was saved', safe=False)
+
+
 # Page where user can finalize order 
 # access: CLIENT
 def checkout(request):
     
-    # TODO: filter elements by current user id and display only his order (same as in cart)
-    orders_for_user = Zamowienie.objects.all().filter(klient=1)
+    # filter elements by current user id and display only his order which he selected in cart
+    order = Zamowienie.objects.all().filter(klient=1).filter(status=1)
     current_user = 1
+        
+    # get all products info from products table having orderproducts info
+    for ord in order:
+        orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=ord.id_zamowienie)
+        break
     
-    # TODO: calculate sum 
+    orderproducts_all = []
+    order_sum = 0
+    for zamowienieproduct in orderproducts:
+        product = Produkt.objects.get(id_produktu=zamowienieproduct.produkt_id)
+        orderproducts_all.append(product)
+        order_sum += zamowienieproduct.get_total
+        
     
-    orders = Zamowienie.objects.all()
-    context = {'orders': orders, 'orders_for_user': orders_for_user, 'current_user': current_user}
+    context = {'order': order, 'order_sum': order_sum, 'orderproducts': orderproducts,
+               'orderproducts_all': orderproducts_all, 'current_user': current_user}
+    
     return render(request, 'shop/checkout.html', context)
-
+    
 
 # Page where client or producent can see his messages and write a new one
 # access: CLIENT, PRODUCENT
