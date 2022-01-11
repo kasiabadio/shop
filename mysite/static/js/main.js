@@ -18,26 +18,28 @@ for(let i = 0; i < update_cart_buttons.length; i++){
     update_cart_buttons[i].addEventListener('click', function(){
 
         let product_id = this.dataset.product // product.id_produktu
+        let producent_id = this.dataset.producent
         console.log('product_id:', product_id)
+        console.log('producent_id:', producent_id)
 
         console.log('USER:', user)
         if(user === 'AnonymousUser'){
 
             // TODO: delete it once login is done 
-            update_user_order(product_id)
+            update_user_order(product_id, producent_id)
             console.log('Not logged in')
         }else{
-            update_user_order(product_id)
+            update_user_order(product_id, producent_id)
         }
 
     })
 }
 
 
-function update_user_order(product_id){
+function update_user_order(product_id, producent_id){
     console.log('User is logged in, sending data...')
 
-    let url = '/update_item/'
+    let url = '/shop/update_item/'
 
     fetch(url, {
         method: 'POST',
@@ -47,6 +49,7 @@ function update_user_order(product_id){
         },
         body: JSON.stringify({
             'product_id': product_id, 
+            'producent_id': producent_id,
         })
     })
 
@@ -55,7 +58,8 @@ function update_user_order(product_id){
                 return response.json()
             })
             .then((data) => {
-                console.log('data: ', data)
+                //console.log('data: ', data);
+                location.reload;
             })
             .catch(error =>{
                 console.error(error);

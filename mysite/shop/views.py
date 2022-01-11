@@ -7,6 +7,7 @@ from django.db import connection
 from django.template.defaulttags import register
 from rest_framework.decorators import api_view
 import json
+from django.core.exceptions import ObjectDoesNotExist
 
 
 @register.filter
@@ -33,15 +34,33 @@ def update_item(request):
     
     data = json.loads(json.dumps(request.data))
     product_id = int(float(data['product_id']))
+    producent_id = int(float(data['producent_id']))
     current_user = 1
     
     product = Produkt.objects.get(id_produktu=product_id)
     # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
-    zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False)
-    
+    zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, koszt=0, klient_id=1, producent_id=producent_id)
+    print("New order had to be created: ", created)
+ 
     
     # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
-    # change status from 0 (not in cart) to 60 (in cart)
+    print("producent_id", producent_id)
+    print("produkt_id: ", product_id)
+    print("zamowienie.id_zamowienie: ", zamowienie.id_zamowienie)
+    
+    
+    try:
+        # user wants to increase quantity of a product
+        zamowienieprodukt = ZamowienieProdukt.objects.get(produkt_id=product_id, zamowienie_id=zamowienie.id_zamowienie)
+        zamowienieprodukt.quantity += 1
+        zamowienieprodukt.save()
+        print("Increase quantity by one in ZamowienieProdukt")
+        
+    except ObjectDoesNotExist:
+        # user added new product to a cart
+        ZamowienieProdukt.objects.create(quantity=1, produkt_id=product_id, zamowienie_id=zamowienie.id_zamowienie)
+        print("New ZamowienieProdukt had to be created")
+        
     
     return JsonResponse('Item was added to cart', safe=False)
 

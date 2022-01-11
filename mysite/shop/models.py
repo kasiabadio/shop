@@ -179,12 +179,21 @@ class Reklamacja(models.Model):
     status = models.IntegerField() 
 
 
+# returns next default value for id_zamowienie field in Zamowienie table
+def add_one_zamowienie():
+    largest = Zamowienie.objects.all().order_by('id_zamowienie').last()
+    if not largest:
+        print("A ", largest)
+        return 1
+    print("B ", largest)
+    return largest.id_zamowienie + 1
+
 
 class Zamowienie(models.Model):
     objects = None
     
     class Meta:
-        unique_together = (('id_zamowienie', 'klient'),)
+        unique_together = (('id_zamowienie', 'klient', 'producent'),)
         indexes = [
             models.Index(fields=['czy_oplacone',]),
             models.Index(fields=['sposob_dostawy',]),
@@ -192,14 +201,14 @@ class Zamowienie(models.Model):
             models.Index(fields=['koszt',]),
         ]
     
-    id_zamowienie = models.IntegerField(null=True)
+    id_zamowienie = models.IntegerField(null=True, default=add_one_zamowienie)
     czy_oplacone = models.BooleanField(verbose_name="czy opłacone")
     sposob_dostawy = models.CharField(max_length=50, verbose_name="sposób dostawy")
     status = models.IntegerField()
     koszt = models.FloatField()
 
-    # TODO: one-to-one with producent --> should be many to one
-    producent = OneToOneField(Producent, on_delete=models.SET_NULL, null=True)
+    # many-to-one with producent
+    producent = models.ForeignKey(Producent, on_delete=models.CASCADE, default="")
     
     # one-to-one with czat
     czat = OneToOneField(Czat, on_delete=models.SET_NULL, null=True)
@@ -269,7 +278,7 @@ class ZamowienieProdukt(models.Model):
     
     # many-to-one with zamowienie
     zamowienie = models.ForeignKey(Zamowienie, on_delete=models.SET_NULL, blank=True, null=True)
-    quantity = models.IntegerField(default=0, null=True, blank=True)
+    quantity = models.IntegerField(default=0, blank=True, null=True)
     
     @property
     def get_total(self):
