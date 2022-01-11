@@ -9,21 +9,12 @@ from rest_framework.decorators import api_view
 import json
 
 
-
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
 
-#@api_view(["POST"])
-def update_item(request):
-    # json.loads -> parse json
-    # json.dumps -> convert into json 
-    #data = json.loads(json.dumps(request.data))
-    return JsonResponse('Item was added', safe=False)
-    
-
-# # Calulate sum of all orders of a user
+# # Calculate sum of all orders of a user
 # def calculate_sum_koszyk(klient):
 #     with connection.cursor() as cursor:
 #         sum_koszyk = cursor.callproc('calculate_sum_koszyk', [klient])
@@ -36,7 +27,25 @@ def update_item(request):
 #     return sum_zamowienie
 #-----------------------------------------------
 
+# add item to cart
+@api_view(["POST"])
+def update_item(request):
     
+    data = json.loads(json.dumps(request.data))
+    product_id = int(float(data['product_id']))
+    current_user = 1
+    
+    product = Produkt.objects.get(id_produktu=product_id)
+    # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
+    zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False)
+    
+    
+    # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
+    # change status from 0 (not in cart) to 60 (in cart)
+    
+    return JsonResponse('Item was added to cart', safe=False)
+
+
 
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
@@ -44,6 +53,8 @@ def shop(request):
     
     products = Produkt.objects.all()
     context = {'products': products}
+    
+    # TODO: categories 
             
     return render(request, 'shop/main.html', context)
 
@@ -91,7 +102,7 @@ def cart(request):
         #orders_for_user = Zamowienie.objects.get_or_create(klient=klient)
         
     # select only those orders which were not paid
-    orders_for_user = Zamowienie.objects.all().filter(klient=1).filter(czy_oplacone=False)
+    orders_for_user = Zamowienie.objects.all().filter(status=60).filter(klient=1).filter(czy_oplacone=False)
     current_user = 1
     
     # calculate sum of a cart
@@ -148,6 +159,7 @@ def cart(request):
     return render(request, 'shop/cart.html', context)
 
 
+# choose which order is in checkout
 @api_view(["POST"])
 def curr_order_number(request):
     
@@ -155,12 +167,11 @@ def curr_order_number(request):
     order_number = int(float(data['order_number']))
     print('Order number: ', order_number, type(order_number))
     
-    # change status from 0 (in cart) to 1 (in checkout)
-    
+    # change status from 60 (in cart) to 1 (in checkout)
     order = Zamowienie.objects.get(id=order_number)
     order.status = 1
     order.save()
-    #print('Order number: ', order_number)
+    
     return JsonResponse('Order number was saved', safe=False)
 
 

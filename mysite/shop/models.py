@@ -198,7 +198,7 @@ class Zamowienie(models.Model):
     status = models.IntegerField()
     koszt = models.FloatField()
 
-    # one-to-one with producent
+    # TODO: one-to-one with producent --> should be many to one
     producent = OneToOneField(Producent, on_delete=models.SET_NULL, null=True)
     
     # one-to-one with czat
