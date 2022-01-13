@@ -58,58 +58,30 @@
                     <li class="nav-item dropdown has-megamenu">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Wyszukiwarka</a>
                         <div class="dropdown-menu megamenu" role="menu">
+
                             <div class="row g-3">
-                                
+                                {% for super_category, sub_categories in super_categories_dict.items %}
                                 <div class="col-lg-3 col-6">
                                     <div class="col-megamenu">
-                                        <h6 class="title">Title Menu One</h6>
-                                        
-                                    </div>  <!-- col-megamenu.// -->
-                                </div><!-- end col-3 -->
 
-                                <div class="col-lg-3 col-6">
-                                    <div class="col-megamenu">
-                                        <h6 class="title">Title Menu Two</h6>
-                                        <ul class="list-unstyled">
-                                            <li><a href="#">Custom Menu</a></li>
-                                            <li><a href="#">Custom Menu</a></li>
+                                        <h6 class="title">{{super_category}}</h6>
+                                        <ul class="list-styled"> 
+
+                                        {% for subcategory in sub_categories %}                     
+                                            <li><a href="{% url 'Category' subcategory.pk %}">{{subcategory}}</a></li>
+                                        {% endfor %}
+
                                         </ul>
-                                    </div>  <!-- col-megamenu.// -->
-                                </div><!-- end col-3 -->
-
-                                <div class="col-lg-3 col-6">
-                                    <div class="col-megamenu">
-                                        <h6 class="title">Title Menu Three</h6>
-                                        <ul class="list-unstyled">
-                                            <li><a href="#">Custom Menu</a></li>
-                                            <li><a href="#">Custom Menu</a></li>
-                                        </ul>
-                                    </div>  <!-- col-megamenu.// -->
-                                </div>    
-
-                                <div class="col-lg-3 col-6">
-                                    <div class="col-megamenu">
-                                        <h6 class="title">Title Menu Four</h6>
-                                        <ul class="list-unstyled">
-                                        </ul>
-                                    </div>  <!-- col-megamenu.// -->
-                                </div><!-- end col-3 -->
-
-                                <div class="col-lg-3 col-6">
-                                    <div class="col-megamenu">
-                                        <h6 class="title">Title Menu Five</h6>
-                                        <ul class="list-unstyled">
-                                        </ul>
-                                    </div>  <!-- col-megamenu.// -->
-                                </div><!-- end col-3 -->
-
-                            </div><!-- end row --> 
-                        </div> <!-- dropdown-mega-menu.// -->
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div> 
                     </li>
                 </ul>
                 
-            </div> <!-- navbar-collapse.// -->
-        </div> <!-- container-fluid.// -->
+            </div> 
+        </div> 
         </nav>
 
     <div class="container">
@@ -139,6 +111,6 @@
 
     <script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
-
+    <script type="text/javascript" src="{% static 'js/checkout.js' %}"></script>
 </body>
 </html>

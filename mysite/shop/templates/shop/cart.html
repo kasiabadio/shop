@@ -10,8 +10,8 @@
             {% for order in orders_for_user %}
                 <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
 
-                    <h4>Numer zamówienia: {{order.id_zamowienie}}</h4>
-                    <h4>Suma zamówienia: {{cart_sum|get_item:order.id_zamowienie|floatformat:2}} zł</h4>
+                    <h4>Numer zamówienia: {{order.id}}</h4>
+                    <h4>Suma zamówienia: {{cart_sum|get_item:order.id|floatformat:2}} zł</h4>
                     <h10><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h10>
                     <h10><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h10>
                     <h10><em style="color:orange;">status:</em> {{order.status}},</h10>
@@ -40,7 +40,7 @@
                         <tbody>
                             {% for key, products in cart_products.items %}
                                 
-                                {% if key == order.id_zamowienie %}
+                                {% if key == order.id %}
                                     {% for product in products %}
                                     <tr>
                                         <td>{{product.nazwa}}</td>
@@ -80,9 +80,9 @@
             <h10>Wybierz zamówienie do zapłaty</h10>
             <br>
 
-            <select id="order-selection-cart" class="form-control">
+            <select id="order-selection-cart" onclick="order_cart_display()" class="form-control">
                 {% for order in orders_for_user %}
-                    <option>{{order.id_zamowienie}}</option>
+                    <option>{{order.id}}</option>
                 {% endfor %}
             </select>
 
@@ -90,15 +90,6 @@
         <br>
 
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
-            <h10>Szczegóły zamówienia </h10>
-            <h4 type="value" id="order-details"></h4>
-        </div>
-        <br>
-
-        <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
-            <h4>Suma zamówienia</h4>
-            <h10>Suma: {{cart_total|floatformat:2}} zł</h10>
-            <br>
             <div class="btn btn-primary" onclick="order_cart()" href="{% url 'checkout' %}" role="button">Zamawiam</div>
         </div>
         <br>

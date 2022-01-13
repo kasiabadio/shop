@@ -33,12 +33,9 @@
 
     <div class="col-md-6" style="background-color:#aaa;">
         <h2>Twoje zamówienie</h2>
-        {% for order in order %}
-            <h4>Numer wybranego zamówienia: {{order.id_zamowienie}}</h4>
+        {% for ord in order|slice:":1" %}
+            <h4 type="value" id="order-checkout">{{ord.id_zamowienie}}</h4>
         {% endfor %}
-        
-        <h4 type="value" id="order-selected-in-cart"></h4>
-
         <br>
 
         <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
@@ -74,15 +71,13 @@
                         <td>Suma</td>
                         <td>{{ order_sum }} zł</td>
                     </tr>
-    
                 </tbody>
             </table>    
         </div>
 
-
         
         <div class="row cart-box" style="background-color:rgb(226, 226, 226);">
-            <a class="btn btn-primary" href='#' role="button">Zapłać</a>
+            <div class="btn btn-primary" onclick="order_checkout()" href="{% url 'shop' %}" role="button">Zapłać</div>
         </div>
         <br>
     </div>

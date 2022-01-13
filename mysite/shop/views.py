@@ -1,13 +1,11 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 from django.http import JsonResponse
-from django.db import connection
 from .models import *
 from django.db import connection
 from django.template.defaulttags import register
 from rest_framework.decorators import api_view
 import json
-from django.core.exceptions import ObjectDoesNotExist
+from django.views.generic.detail import DetailView
 
 
 @register.filter
@@ -41,27 +39,23 @@ def update_item(request):
     # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
     zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, koszt=0, klient_id=1, producent_id=producent_id)
     print("New order had to be created: ", created)
- 
+    
     
     # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
     print("producent_id", producent_id)
     print("produkt_id: ", product_id)
     print("zamowienie.id_zamowienie: ", zamowienie.id_zamowienie)
     
-    
-    try:
-        # user wants to increase quantity of a product
-        zamowienieprodukt = ZamowienieProdukt.objects.get(produkt_id=product_id, zamowienie_id=zamowienie.id_zamowienie)
-        zamowienieprodukt.quantity += 1
-        zamowienieprodukt.save()
+    zamowienieproduct, created = ZamowienieProdukt.objects.get_or_create(produkt_id=product_id, zamowienie_id=zamowienie.id)
+    if not created:
         print("Increase quantity by one in ZamowienieProdukt")
-        
-    except ObjectDoesNotExist:
-        # user added new product to a cart
-        ZamowienieProdukt.objects.create(quantity=1, produkt_id=product_id, zamowienie_id=zamowienie.id_zamowienie)
+        zamowienieproduct.quantity += 1
+        zamowienieproduct.save()
+    else:
+        zamowienieproduct.quantity = 1
+        zamowienieproduct.save()
         print("New ZamowienieProdukt had to be created")
-        
-    
+
     return JsonResponse('Item was added to cart', safe=False)
 
 
@@ -71,11 +65,19 @@ def update_item(request):
 def shop(request):
     
     products = Produkt.objects.all()
-    context = {'products': products}
+    super_categories = Kategoria.objects.all().filter(id_nadkategorii=None)
     
-    # TODO: categories 
+    # create dictionary where we store subcategories     
+    super_categories_dict = {}
+        
+    for category in super_categories:
+        
+        sub_categories = Kategoria.objects.all().filter(id_nadkategorii=category.id_kategorii)
+        super_categories_dict[category] = sub_categories
             
+    context = {'products': products, 'super_categories_dict': super_categories_dict}
     return render(request, 'shop/main.html', context)
+
 
 
 # Page for adding product to a database, modifying visibility for existing products
@@ -94,12 +96,18 @@ def orders(request):
 
 # Displays info about category
 # access: CLIENT, PRODUCENT
-def category(request):
-    
-    products = Produkt.objects.all()
-    context = {'products': products}
-    
-    return render(request, 'shop/category.html', context)
+class Category(DetailView):
+    model = Kategoria
+    template_name = 'shop/category.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['product_categorias'] = Produkt.kategoria.through.objects.filter(kategoria_id=self.object.id_kategorii)
+        products = []
+        for product_cat in context['product_categorias']:
+            products.append(Produkt.objects.get(id_produktu=product_cat.produkt_id))
+        context['products'] = products
+        return context
 
 
 # Displays info about product
@@ -123,10 +131,7 @@ def cart(request):
     # select only those orders which were not paid
     orders_for_user = Zamowienie.objects.all().filter(status=60).filter(klient=1).filter(czy_oplacone=False)
     current_user = 1
-    
-    # calculate sum of a cart
-    cart_total = 0
-    
+      
     # get all products for each order
     # get producents from all orders 
     cart_products = {}
@@ -138,7 +143,7 @@ def cart(request):
         cart_producents.append(order.producent_id)
         
         # get all products id's in an order
-        orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=order.id_zamowienie)
+        orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=order.id)
 
         # get all products info from products table having orderproducts info
         orderproducts_all = []
@@ -148,15 +153,14 @@ def cart(request):
             orderproducts_all.append(product)
             order_sum += zamowienieproduct.get_total
             
-        cart_total += order_sum
         
         # add all products to cart_products dictionary
         if order.id_zamowienie not in cart_products:
-            cart_products[order.id_zamowienie] = orderproducts_all
+            cart_products[order.id] = orderproducts_all
         
         # add cart sum to cart_sum dictionary
         if order.id_zamowienie not in cart_sum:
-            cart_sum[order.id_zamowienie] = order_sum
+            cart_sum[order.id] = order_sum
             
     shipping_type = Zamowienie.sposob_dostawy
         
@@ -171,7 +175,7 @@ def cart(request):
     #     all = []
     
     
-    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 'cart_total': cart_total, 
+    context = {'orders_for_user': orders_for_user, 'current_user': current_user, 
                'cart_products': cart_products, 'cart_sum': cart_sum, 'shipping_type': shipping_type, 
                'cart_producents': cart_producents, 'orderproducts_all': all}
     
@@ -192,6 +196,24 @@ def curr_order_number(request):
     order.save()
     
     return JsonResponse('Order number was saved', safe=False)
+
+
+# confirm order in checkout
+@api_view(["POST"])
+def process_order(request):
+    
+    data = json.loads(json.dumps(request.data))
+    order_number = int(float(data['order_number']))
+    print('Order number: ', order_number, type(order_number))
+    
+    # change status from 1 (in checkout) to 2 (made payment)
+    # note: here could implement payment method
+    order = Zamowienie.objects.get(id=order_number)
+    order.status = 2
+    order.save()
+    
+    return JsonResponse('Order in checkout was payed', safe=False)
+
 
 
 # Page where user can finalize order 

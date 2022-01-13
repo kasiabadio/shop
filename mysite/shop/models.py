@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.db.models.fields.related import ManyToManyField, OneToOneField
-
+from django.db.models.fields.related import OneToOneField
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
@@ -14,7 +13,7 @@ class Kategoria(models.Model):
         
     id_kategorii = models.AutoField(primary_key=True)
     nazwa_kategorii = models.CharField(max_length=50, default="null")
-    id_nadkategorii = models.IntegerField()
+    id_nadkategorii = models.IntegerField(null=True)
     
     # many-to-one with Kategoria
     podkategoria = models.ForeignKey("self", on_delete=models.SET_NULL, null=True)
