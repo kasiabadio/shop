@@ -22,7 +22,6 @@
                     <br>
 
                     
-                    
                     <table class="table">
                         <thead>
                             <tr>
@@ -50,7 +49,7 @@
                                         <td>{{product.opis}}</td>
                                         <td>{{product.producent_id}}</td>
                                         
-                                        {% for orderproduct in orderproducts_all %}
+                                        {% for orderproduct in all %}
                                             {% if orderproduct.zamowienie_id == key %}
                                                 {% if orderproduct.produkt_id == product.id_produktu %}
                                                     <td>{{orderproduct.quantity}}</td>
@@ -80,7 +79,7 @@
             <h10>Wybierz zamówienie do zapłaty</h10>
             <br>
 
-            <select id="order-selection-cart" onclick="order_cart_display()" class="form-control">
+            <select id="order-selection-cart" class="form-control">
                 {% for order in orders_for_user %}
                     <option>{{order.id}}</option>
                 {% endfor %}

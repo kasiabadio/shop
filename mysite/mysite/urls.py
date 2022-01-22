@@ -18,5 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('shop/', include('shop.urls')) # http://127.0.0.1:8000/shop/
+    path('shop/', include('shop.urls')),
+    #path('accounts/', include('django.contrib.auth.urls')),
+    
 ]

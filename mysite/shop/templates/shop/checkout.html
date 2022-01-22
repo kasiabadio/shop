@@ -32,9 +32,9 @@
 
 
     <div class="col-md-6" style="background-color:#aaa;">
-        <h2>Twoje zamówienie</h2>
+        <br>
         {% for ord in order|slice:":1" %}
-            <h4 type="value" id="order-checkout">{{ord.id_zamowienie}}</h4>
+            <h4 type="value" id="order-checkout">{{ord.id}}</h4>
         {% endfor %}
         <br>
 

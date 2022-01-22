@@ -69,6 +69,8 @@ TEMPLATES = [
     },
 ]
 
+LOGIN_REDIRECT_URL = '/shop/'
+
 AUTH_USER_MODEL = 'shop.User'
 
 WSGI_APPLICATION = 'mysite.wsgi.application'

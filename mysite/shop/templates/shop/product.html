@@ -1,6 +1,17 @@
 {% extends 'shop/main.html' %}
 {% load static %}
 {% block content %}
-<h1>Product</h1>
-
+<div class="row">
+    <div class="col-md-6" style="background-color:#aaa;">      
+        <img class="img" alt="Responsive image" src="{% static 'images/placeholder.png' %}">  
+        <h2>Opis:</h2>
+        <h6>{{object.opis}}</h6>
+    </div>
+    <div class="col-md-6" style="background-color:#aaa;"> 
+        <h2><strong>{{object.nazwa}}</strong></h2>
+        <h4>{{object.cena|floatformat:2}} zł</h4>
+        <hr>
+        <button data-product={{object.id_produktu}} data-producent={{object.producent_id}} class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
+    </div>
+</div>
 {% endblock content %}

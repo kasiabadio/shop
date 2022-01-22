@@ -91,7 +91,7 @@ class User(AbstractBaseUser):
     # email will be used to login
     USERNAME_FIELD = 'email'
     # when register must have username
-    REQUIRED_FIELDS = ['username', 'imie', 'nazwisko']
+    REQUIRED_FIELDS = ['username', 'imie', 'nazwisko', 'is_producent', 'is_klient']
     
     objects = MyAccountManager()
     
@@ -100,6 +100,20 @@ class User(AbstractBaseUser):
     
     def has_module_perms(self, app_label):
         return True
+    
+    # def save(self, *args, **kwargs):
+    #     # self.pk will be None for instances that are going to be created
+    #     created = not self.pk
+        
+    #     if created and self.is_producent == True:
+    #         print("Producent created")
+    #         Producent.objects.create(id_producenta=self.pk)
+            
+    #     elif created and self.is_klient == True:
+    #         print("Klient created")
+    #         Klient.objects.create(id_klienta=self.pk)
+        
+    #     super().save(*args, **kwargs)
     
     
 class Producent(models.Model):
@@ -132,7 +146,6 @@ class Czat(models.Model):
     class Meta:
         # acts like a surrogate primary key
         unique_together = (('klient', 'producent'),)
-    
     
     # many-to-one with klient
     klient = models.ForeignKey(Klient, on_delete=models.CASCADE)

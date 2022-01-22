@@ -51,7 +51,7 @@
                 <ul class="navbar-nav">
                     
                     <li class="nav-item">
-                        <a class="btn btn-warning btn-lg" href="{% url 'login' %}">Login</a>
+                        {% comment %} <a class="btn btn-warning btn-lg" href="{% url 'login' %}">Login</a> {% endcomment %}
                     </li>
 
 
@@ -96,7 +96,7 @@
                         <h6><strong>{{product.nazwa}}</strong></h6>
                         <hr>
                         <button data-product={{product.id_produktu}} data-producent={{product.producent_id}} class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
-                        <a class="btn btn-outline-success" href="{% url 'product' %}">Zobacz</a>
+                        <a class="btn btn-outline-success" href="{% url 'Product' product.pk %}">Zobacz</a>
                         <h4 style="display: inline-block;float: right">{{product.cena|floatformat:2}} zł</h4>
                     </div>
                 </div>

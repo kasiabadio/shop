@@ -1,17 +1,104 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.views.generic.detail import DetailView
 from .models import *
 from django.db import connection
 from django.template.defaulttags import register
 from rest_framework.decorators import api_view
 import json
-from django.views.generic.detail import DetailView
-
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.decorators import user_passes_test
+from .forms import SignUpForm, LoginForm
 
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
+
+def is_client(user):
+    return user.is_klient
+
+
+def is_producent(user):
+    return user.is_producent
+
+
+def login(request):
+    
+    if request.user.is_authenticated:
+        
+        print("Already logged in")
+        return redirect('shop')
+    
+    
+    elif request.method == 'POST':
+        
+        form = LoginForm(request.POST)
+        
+        if form.is_valid():            
+            email = form.cleaned_data.get('email')
+            raw_password = form.cleaned_data.get('password')
+            user = authenticate(request, email=email, password=raw_password)
+            
+            if user is not None:
+                auth_login(request, user)
+                print("Logged in")
+                return redirect('shop/main.html')
+    else:
+        form = LoginForm()
+            
+    # email = request.POST.get('email')
+    # password = request.POST.get('password')
+    # user = authenticate(request, email=email, password=password)
+    # if user is not None:
+        
+    #     login(request, user)
+    #     print("Logged in, ", user.email)
+    #     return redirect('shop/main.html')
+    
+    return render(request, 'shop/login.html', {'form': form})
+    
+    
+def signup(request):
+    
+    if request.user.is_authenticated:
+        
+        print("Logged in - can not register")
+        return redirect('shop')
+    
+    
+    elif request.method == 'POST':
+        
+        form = SignUpForm(request.POST)
+        
+        if form.is_valid():
+            user = form.save()
+            
+            # create client or producent accordingly to fields is_producent and is_klient
+            if user.is_klient == True: 
+                klient, created = Klient.objects.get_or_create(id_klienta=user)
+                print("New klient was created: ", created)
+                
+            elif user.is_producent == True:
+                producent, created = Producent.objects.get_or_create(id_producenta=user)
+                print("New producent was created: ", created)
+      
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            print('Signup successfull')
+            return redirect('shop')
+    else:
+        form = SignUpForm()
+        
+    return render(request, 'shop/signup.html', {'form': form})
+        
+        
+def logout_view(request):
+    
+    if request.user.is_authenticated:
+        logout(request)
+        print('Logout successfull')
+        return redirect('shop')
 
 # # Calculate sum of all orders of a user
 # def calculate_sum_koszyk(klient):
@@ -33,31 +120,31 @@ def update_item(request):
     data = json.loads(json.dumps(request.data))
     product_id = int(float(data['product_id']))
     producent_id = int(float(data['producent_id']))
-    current_user = 1
     
-    product = Produkt.objects.get(id_produktu=product_id)
-    # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
-    zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, koszt=0, klient_id=1, producent_id=producent_id)
-    print("New order had to be created: ", created)
-    
-    
-    # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
-    print("producent_id", producent_id)
-    print("produkt_id: ", product_id)
-    print("zamowienie.id_zamowienie: ", zamowienie.id_zamowienie)
-    
-    zamowienieproduct, created = ZamowienieProdukt.objects.get_or_create(produkt_id=product_id, zamowienie_id=zamowienie.id)
-    if not created:
-        print("Increase quantity by one in ZamowienieProdukt")
-        zamowienieproduct.quantity += 1
-        zamowienieproduct.save()
-    else:
-        zamowienieproduct.quantity = 1
-        zamowienieproduct.save()
-        print("New ZamowienieProdukt had to be created")
+    if request.user.is_authenticated:
+        current_user = request.user
+        
+        product = Produkt.objects.get(id_produktu=product_id)
+        # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
+        zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, koszt=0, klient_id=current_user.id_user, producent_id=producent_id)
+        print("New order had to be created: ", created)
+        
+        # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
+        print("producent_id", producent_id)
+        print("produkt_id: ", product_id)
+        print("zamowienie.id_zamowienie: ", zamowienie.id_zamowienie)
+        
+        zamowienieproduct, created = ZamowienieProdukt.objects.get_or_create(produkt_id=product_id, zamowienie_id=zamowienie.id)
+        if not created:
+            print("Increase quantity by one in ZamowienieProdukt")
+            zamowienieproduct.quantity += 1
+            zamowienieproduct.save()
+        else:
+            zamowienieproduct.quantity = 1
+            zamowienieproduct.save()
+            print("New ZamowienieProdukt had to be created")
 
     return JsonResponse('Item was added to cart', safe=False)
-
 
 
 # Main page for shop: search (products/)
@@ -79,9 +166,9 @@ def shop(request):
     return render(request, 'shop/main.html', context)
 
 
-
 # Page for adding product to a database, modifying visibility for existing products
 # access: PRODUCENT
+@user_passes_test(is_producent)
 def manage(request):
     context = {}
     return render(request, 'shop/manage.html')
@@ -112,72 +199,76 @@ class Category(DetailView):
 
 # Displays info about product
 # access: CLIENT, PRODUCENT
-def product(request):
-    context = {}
-    return render(request, 'shop/product.html')
+class Product(DetailView):
+    model = Produkt
+    template_name = 'shop/product.html'
+    
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        return context
 
 
 # Page where user can see his order which contains orders from specific producents
 # access: CLIENT
+@user_passes_test(is_client)
 def cart(request):
     
-    # if request.user.is_authenticated:
-        
-    # klient = request.user.klient
-        
-        # filter elements by current user id and display only his order
-        #orders_for_user = Zamowienie.objects.get_or_create(klient=klient)
-        
-    # select only those orders which were not paid
-    orders_for_user = Zamowienie.objects.all().filter(status=60).filter(klient=1).filter(czy_oplacone=False)
-    current_user = 1
-      
-    # get all products for each order
-    # get producents from all orders 
+    orders_for_user = {}
+    current_user = 'Anonymous'
     cart_products = {}
     cart_sum = {}
-    products_sum = {}
+    shipping_type = 0
     cart_producents = []
-    all = ZamowienieProdukt.objects.all()
-    for order in orders_for_user:
-        cart_producents.append(order.producent_id)
-        
-        # get all products id's in an order
-        orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=order.id)
+    all = {}
 
-        # get all products info from products table having orderproducts info
-        orderproducts_all = []
-        order_sum = 0
-        for zamowienieproduct in orderproducts:
-            product = Produkt.objects.get(id_produktu=zamowienieproduct.produkt_id)
-            orderproducts_all.append(product)
-            order_sum += zamowienieproduct.get_total
+    if request.user.is_authenticated:
+        
+        print('User is authenticated')
+        print(request.user.username)
+        try:
             
-        
-        # add all products to cart_products dictionary
-        if order.id_zamowienie not in cart_products:
-            cart_products[order.id] = orderproducts_all
-        
-        # add cart sum to cart_sum dictionary
-        if order.id_zamowienie not in cart_sum:
-            cart_sum[order.id] = order_sum
+            current_user = request.user.klient
+            # filter elements by current user id and display only his order & select only those orders which were not paid
+            orders_for_user = Zamowienie.objects.all().filter(status=60).filter(klient=current_user).filter(czy_oplacone=False)
             
-    shipping_type = Zamowienie.sposob_dostawy
-        
-    # else:
-    #     orders_for_user = []
-    #     current_user = -1
-    #     cart_total = -1
-    #     cart_products = []
-    #     cart_sum = []
-    #     shipping_type = 0
-    #     cart_producents = []
-    #     all = []
+            # get all products for each order & get producents from all orders 
+            all = ZamowienieProdukt.objects.all()
+            
+            for order in orders_for_user:
+                print("ORDER ID: ", order.id)
+                cart_producents.append(order.producent_id)
+                
+                # get all products id's in an order
+                orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=order.id)
+
+                # get all products info from products table having orderproducts info
+                orderproducts_all = []
+                order_sum = 0
+                for zamowienieproduct in orderproducts:
+                    product = Produkt.objects.get(id_produktu=zamowienieproduct.produkt_id)
+                    print(product.id_produktu)
+                    orderproducts_all.append(product)
+                    order_sum += zamowienieproduct.get_total
+                    
+                # add all products to cart_products dictionary
+                if order.id not in cart_products:
+                    cart_products[order.id] = orderproducts_all
+                
+                # add cart sum to cart_sum dictionary
+                if order.id not in cart_sum:
+                    cart_sum[order.id] = order_sum
+                    
+            shipping_type = Zamowienie.sposob_dostawy
+            
+            
+        except User.klient.RelatedObjectDoesNotExist:
+            
+            print ("User is not defined")
     
-    
+    print(cart_products)
     context = {'orders_for_user': orders_for_user, 'current_user': current_user, 
                'cart_products': cart_products, 'cart_sum': cart_sum, 'shipping_type': shipping_type, 
-               'cart_producents': cart_producents, 'orderproducts_all': all}
+               'cart_producents': cart_producents, 'all': all}
     
     return render(request, 'shop/cart.html', context)
 
@@ -210,6 +301,7 @@ def process_order(request):
     # note: here could implement payment method
     order = Zamowienie.objects.get(id=order_number)
     order.status = 2
+    order.czy_oplacone = True
     order.save()
     
     return JsonResponse('Order in checkout was payed', safe=False)
@@ -220,26 +312,47 @@ def process_order(request):
 # access: CLIENT
 def checkout(request):
     
-    # filter elements by current user id and display only his order which he selected in cart
-    order = Zamowienie.objects.all().filter(klient=1).filter(status=1)
-    current_user = 1
-        
-    # get all products info from products table having orderproducts info
-    for ord in order:
-        orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=ord.id_zamowienie)
-        break
-    
-    orderproducts_all = []
+    order = {}
     order_sum = 0
-    for zamowienieproduct in orderproducts:
-        product = Produkt.objects.get(id_produktu=zamowienieproduct.produkt_id)
-        orderproducts_all.append(product)
-        order_sum += zamowienieproduct.get_total
+    orderproducts = {}
+    orderproducts_all = []
+    current_user = "Anonymous"
+
+    if request.user.is_authenticated:
         
+        print ("User is authenticated")
+        print(request.user.username)
+        
+        try:
+            
+            current_user = request.user.klient
+            
+            
+            # filter elements by current user id and display only his order which he selected in cart
+            order = Zamowienie.objects.all().filter(klient=current_user).filter(status=1)
+                
+            # get all products info from products table having orderproducts info
+            for ord in order:
+                orderproducts = ZamowienieProdukt.objects.all().filter(zamowienie_id=ord.id_zamowienie)
+                break
+            
+            for zamowienieproduct in orderproducts:
+                product = Produkt.objects.get(id_produktu=zamowienieproduct.produkt_id)
+                orderproducts_all.append(product)
+                order_sum += zamowienieproduct.get_total
+                
+                
+        except User.klient.RelatedObjectDoesNotExist:
+            
+            print ("User is not defined")
     
+    else:
+        print("User is not authenticated")
+       
+       
     context = {'order': order, 'order_sum': order_sum, 'orderproducts': orderproducts,
-               'orderproducts_all': orderproducts_all, 'current_user': current_user}
-    
+                'orderproducts_all': orderproducts_all, 'current_user': current_user} 
+        
     return render(request, 'shop/checkout.html', context)
     
 
