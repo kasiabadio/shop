@@ -6,8 +6,6 @@ function order_checkout() {
     if(user === 'AnonymousUser'){
         console.log('Not logged in')
 
-        // TODO: delete it once login is done 
-        process_order(select);
     }else{
         console.log('Logged in')
         process_order(select);

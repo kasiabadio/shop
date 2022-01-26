@@ -22,4 +22,4 @@ class LoginForm(AuthenticationForm):
     
     class Meta:
         model = User
-        fields = ('email','username', )
+        fields = ('email','username')

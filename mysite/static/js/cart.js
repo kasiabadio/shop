@@ -1,19 +1,3 @@
-let order_option = document.getElementById('order-selection-cart')
-
-
-// // ordernumber update in cart.html
-// function order_cart_display(){
-
-//     let select = document.getElementById('order-selection-cart');
-//     //let select1 = document.getElementById('order-details');
-
-//     let value = select.options[select.selectedIndex].value;
-//     //select1.innerHTML = value;
-  
-//     return value;
-// }
-
-
 
 // ordernumber is sent to checkout.html
 function order_cart() {
@@ -24,8 +8,6 @@ function order_cart() {
     if(user === 'AnonymousUser'){
         console.log('Not logged in')
 
-        // TODO: delete it once login is done 
-        update_order_number(value);
     }else{
         console.log('Logged in')
         update_order_number(value);

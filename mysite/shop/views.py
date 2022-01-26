@@ -8,56 +8,39 @@ from rest_framework.decorators import api_view
 import json
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.decorators import user_passes_test
 from .forms import SignUpForm, LoginForm
+from django.db.models import Q
 
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
-
-def is_client(user):
-    return user.is_klient
-
-
-def is_producent(user):
-    return user.is_producent
-
-
-def login(request):
+# TODO : fix
+def login_view(request):
     
     if request.user.is_authenticated:
         
         print("Already logged in")
         return redirect('shop')
-    
-    
+        
     elif request.method == 'POST':
         
         form = LoginForm(request.POST)
-        
-        if form.is_valid():            
+        if form.is_valid():
+                
             email = form.cleaned_data.get('email')
             raw_password = form.cleaned_data.get('password')
             user = authenticate(request, email=email, password=raw_password)
             
             if user is not None:
-                auth_login(request, user)
+                auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 print("Logged in")
-                return redirect('shop/main.html')
+                return redirect('shop')
+                
     else:
         form = LoginForm()
-            
-    # email = request.POST.get('email')
-    # password = request.POST.get('password')
-    # user = authenticate(request, email=email, password=password)
-    # if user is not None:
-        
-    #     login(request, user)
-    #     print("Logged in, ", user.email)
-    #     return redirect('shop/main.html')
     
-    return render(request, 'shop/login.html', {'form': form})
+    return render(request, 'shop/login.html', {'form': form })
     
     
 def signup(request):
@@ -66,7 +49,6 @@ def signup(request):
         
         print("Logged in - can not register")
         return redirect('shop')
-    
     
     elif request.method == 'POST':
         
@@ -90,7 +72,8 @@ def signup(request):
     else:
         form = SignUpForm()
         
-    return render(request, 'shop/signup.html', {'form': form})
+    return render(request, 'shop/signup.html', {'form': form })
+        
         
         
 def logout_view(request):
@@ -99,6 +82,9 @@ def logout_view(request):
         logout(request)
         print('Logout successfull')
         return redirect('shop')
+    
+    context = {}
+    return render(request, 'shop/logout.html', context)
 
 # # Calculate sum of all orders of a user
 # def calculate_sum_koszyk(klient):
@@ -166,12 +152,90 @@ def shop(request):
     return render(request, 'shop/main.html', context)
 
 
+@api_view(["POST"])
+def add_product_to_database(request):
+
+    if request.user.is_authenticated and request.user.is_producent:
+        
+        print('User is authenticated')
+        current_user = request.user
+        
+        data = json.loads(json.dumps(request.data))
+        
+        nazwa = str(data['nazwa'])        
+        numer_partii = int(float(data['numer_partii']))
+        cena = float(data['cena'])
+        opis = str(data['opis'])
+        liczba = int(float(data['liczba']))
+        image = str(data['image'])
+        producent_id = request.user.id_user
+        
+        kategoria_nazwa = str(data['kategoria'])
+        print(kategoria_nazwa)
+        kategoria_id = Kategoria.objects.all().filter(nazwa_kategorii=kategoria_nazwa)
+        print(kategoria_id)
+        
+        # dodaj produkt
+        product = Produkt.objects.create(nazwa=nazwa, numer_partii=numer_partii,
+                                         cena=cena, opis=opis, liczba=liczba, image=image,
+                                         producent_id=producent_id)
+        
+        # TODO: dodaj produkt - kategoria
+        #Produkt.kategorias.create(produkt_id=product.id_produktu, kategoria_id=kategoria_id)
+        
+    else:
+        print('User is not defined')
+    
+    return JsonResponse('Item was added to database', safe=False)
+
+
 # Page for adding product to a database, modifying visibility for existing products
 # access: PRODUCENT
-@user_passes_test(is_producent)
 def manage(request):
-    context = {}
-    return render(request, 'shop/manage.html')
+    
+    products = {}
+    pc = {}
+    current_user = 'Anonymous'
+    subcategories = {}
+    
+    if request.user.is_authenticated:
+        
+        print('User is authenticated')
+        print(request.user.username)
+        current_user = request.user.username
+        
+        if request.user.is_klient:
+            print('Jest klientem: ', request.user.is_klient)
+            return redirect('shop')
+    
+        try:
+            print('Jest producentem: ', request.user.is_producent)
+            
+            # wybierz produkty należące tylko do tego producenta
+            products = Produkt.objects.all().filter(producent_id=request.user.id_user)
+            product_categories = Produkt.kategoria.through.objects.all()
+            
+            # przejdź po id produktu, dodaj do słownika id kategorii i nazwę
+            for prodcat in product_categories:
+                if prodcat.produkt_id not in pc:
+                    pc[prodcat.produkt_id] = str(Kategoria.objects.all().filter(id_kategorii=prodcat.kategoria_id))[23:-3]
+                    # print(prodcat.produkt_id, pc[prodcat.produkt_id], type(pc[prodcat.produkt_id]))
+                                       
+            # create dictionary where we store subcategories     
+            subcategories = Kategoria.objects.all().filter(~Q(id_nadkategorii=None))
+            
+            context = {'current_user': current_user, 'products': products , 'pc': pc , 
+               'subcategories': subcategories }
+            
+            return render(request, 'shop/manage.html', context)
+                                    
+        except User.producent.RelatedObjectDoesNotExist:   
+            print ("User is not defined")
+    
+    
+    return redirect('shop')
+    
+    
 
 
 # Page for viewing orders
@@ -189,7 +253,7 @@ class Category(DetailView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['product_categorias'] = Produkt.kategoria.through.objects.filter(kategoria_id=self.object.id_kategorii)
+        context['product_categorias'] = Produkt.kategoria.through.objects.get(kategoria_id=self.object.id_kategorii)
         products = []
         for product_cat in context['product_categorias']:
             products.append(Produkt.objects.get(id_produktu=product_cat.produkt_id))
@@ -210,7 +274,7 @@ class Product(DetailView):
 
 # Page where user can see his order which contains orders from specific producents
 # access: CLIENT
-@user_passes_test(is_client)
+
 def cart(request):
     
     orders_for_user = {}
@@ -220,11 +284,16 @@ def cart(request):
     shipping_type = 0
     cart_producents = []
     all = {}
+    
 
     if request.user.is_authenticated:
         
         print('User is authenticated')
         print(request.user.username)
+        
+        if request.user.is_producent:
+            return redirect('shop')
+        
         try:
             
             current_user = request.user.klient
@@ -317,6 +386,9 @@ def checkout(request):
     orderproducts = {}
     orderproducts_all = []
     current_user = "Anonymous"
+    
+    if request.user.is_producent:
+            return redirect('shop')
 
     if request.user.is_authenticated:
         
@@ -326,7 +398,6 @@ def checkout(request):
         try:
             
             current_user = request.user.klient
-            
             
             # filter elements by current user id and display only his order which he selected in cart
             order = Zamowienie.objects.all().filter(klient=current_user).filter(status=1)

@@ -39,21 +39,15 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
 
-            <li class="navbar-brand">
-                <a class="nav-link" href="{% url 'shop' %}">Ecoheaven</a>
-            </li>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main_nav"  aria-expanded="false" aria-label="Toggle navigation">
-                
-            </button>
-
-            <div class="collapse navbar-collapse" id="main_nav">
+            <div class="collapse navbar-collapse col-lg-10" id="main_nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Zaloguj się</a>
+                </li> 
+    
+                <li class="nav-item" >
+                    <a class="nav-link" href="{% url 'signup' %}">Zarejestruj się</a>
+                </li>
                 <ul class="navbar-nav">
-                    
-                    <li class="nav-item">
-                        {% comment %} <a class="btn btn-warning btn-lg" href="{% url 'login' %}">Login</a> {% endcomment %}
-                    </li>
-
 
                     <li class="nav-item dropdown has-megamenu">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Wyszukiwarka</a>
@@ -64,11 +58,11 @@
                                 <div class="col-lg-3 col-6">
                                     <div class="col-megamenu">
 
-                                        <h6 class="title">{{super_category}}</h6>
+                                        <h6 style="color:#0d6efd;" class="title">{{super_category}}</h6>
                                         <ul class="list-styled"> 
 
                                         {% for subcategory in sub_categories %}                     
-                                            <li><a href="{% url 'Category' subcategory.pk %}">{{subcategory}}</a></li>
+                                            <li><a style="color:#0d6efd;" href="{% url 'Category' subcategory.pk %}">{{subcategory}}</a></li>
                                         {% endfor %}
 
                                         </ul>
@@ -79,10 +73,18 @@
                         </div> 
                     </li>
                 </ul>
-                
-            </div> 
+            </div>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'shop' %}">Ecoheaven</a>
+            </li>
+
+            <li class="nav-item" >
+                <a class="nav-link" href="{% url 'logout' %}">Wyloguj się</a>
+            </li>
+            
         </div> 
-        </nav>
+    </nav>
 
     <div class="container">
         <br> 
@@ -112,5 +114,6 @@
     <script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/checkout.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/manage.js' %}"></script>
 </body>
 </html>

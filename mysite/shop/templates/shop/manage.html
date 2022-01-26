@@ -2,6 +2,100 @@
 {% load static %}
 {% block content %}
     
+<div class="row">
+    <h12>Aktualny użytkownik: {{current_user}}</h12>
+    <div class="col-md-8" style="background-color:#aaa;"> 
+        <h2 style="color:#0d6efd;">Zarządzanie produktami</h2>
+   
+        <table class="table" style="background-color:rgb(226, 226, 226);">
+            <thead>
+                <th scope="col">Nazwa</th>
+                <th scope="col">Id produktu</th>
+                <th scope="col">Numer partii</th>
+                <th scope="col">Cena za sztukę</th>
+                <th scope="col">Opis</th>
+                <th scope="col">Liczba</th>
+                <th scope="col">Obrazek</th>
+                <th scope="col">Id producenta</th>
+                <th scope="col">Kategoria</th>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{product.nazwa}}</td>
+                        <td>{{product.id_produktu}}</td>
+                        <td>{{product.numer_partii}}</td>
+                        <td>{{product.cena|floatformat:2}} zł</td>
+                        <td>{{product.opis}}</td>
+                        <td>{{product.liczba}}</td>
+                        <td>{{product.image}}</td>
+                        <td>{{product.producent_id}}</td>
 
+                        {% for key, cat in pc.items %}
+                            {% if key == product.id_produktu %}
+                                <td>{{cat}}</td>
+                            {% endif %}
+                        {% endfor %} 
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+          
+    </div>
+
+    <div class="col-md-4" style="background-color:#aaa;">
+        <h2 style="color:#0d6efd;">Dodaj produkt</h2>
+        
+        <form class="form-horizontal">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nazwa</label>
+                <input type="text" id="add-nazwa" class="form-control" value="None"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Numer partii</label>
+                <input type="number" id="add-numer-partii" class="form-control" value="-1"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Cena</label>
+                <input type="number" id="add-cena" class="form-control" value="-1"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Opis</label>
+                <input type="text" id="add-opis" class="form-control" value="None"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Liczba</label>
+                <input type="number" id="add-liczba" class="form-control" value="-1"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Obrazek</label>
+                <input type="text" id="add-image" class="form-control" value="None"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Kategoria</label>
+                <select id="add-category" class="form-control">
+                    {% for category in subcategories %}
+                        <option>{{category}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <br>
+            <div class="btn btn-primary" onclick="add_to_database()" role="button">Dodaj produkt</div>        
+            
+        </form>
+        
+        <br>
+    </div>
+
+</div>
 
 {% endblock content %}

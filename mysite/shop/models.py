@@ -195,9 +195,7 @@ class Reklamacja(models.Model):
 def add_one_zamowienie():
     largest = Zamowienie.objects.all().order_by('id_zamowienie').last()
     if not largest:
-        print("A ", largest)
         return 1
-    print("B ", largest)
     return largest.id_zamowienie + 1
 
 
@@ -239,6 +237,13 @@ class Zamowienie(models.Model):
         return total
     
     
+# returns next default value for id_zamowienie field in Zamowienie table
+def add_one_produkt():
+    largest = Produkt.objects.all().order_by('id_produktu').last()
+    if not largest:
+        return 1
+    return largest.id_produktu + 1
+    
 class Produkt(models.Model):
     
     class Meta:
@@ -255,7 +260,7 @@ class Produkt(models.Model):
     objects = None
     
     nazwa = models.CharField(max_length=50)
-    id_produktu = models.AutoField(primary_key=True)
+    id_produktu = models.AutoField(primary_key=True, default=add_one_produkt)
     numer_partii = models.IntegerField()
     cena = models.FloatField()
     
