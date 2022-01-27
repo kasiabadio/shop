@@ -80,7 +80,7 @@ class User(AbstractBaseUser):
     nazwisko = models.CharField(max_length=50, default="null")
 
     email = models.EmailField(verbose_name="email", max_length=60, unique=True) 
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, unique=True)
     date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
@@ -89,9 +89,10 @@ class User(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
     
     # email will be used to login
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+    
     # when register must have username
-    REQUIRED_FIELDS = ['username', 'imie', 'nazwisko', 'is_producent', 'is_klient']
+    REQUIRED_FIELDS = ['email','imie', 'nazwisko', 'is_producent', 'is_klient']
     
     objects = MyAccountManager()
     

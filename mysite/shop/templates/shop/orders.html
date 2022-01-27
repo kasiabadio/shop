@@ -1,6 +1,41 @@
 {% extends 'shop/main.html' %}
 {% load static %}
 {% block content %}
-<h1>Orders</h1>
+<div class="row" style="background-color:#aaa;">
+    <h2 style="color:#0d6efd;">Historia zamówień</h2>
+    <div style="background-color:rgb(226, 226, 226);">
+       
+    </div>
 
+
+    <table class="table" style="background-color:rgb(226, 226, 226);">
+        <thead>
+            <th scope="col">Numer zamówienia</th>
+            <th scope="col">Czy opłacone</th>
+            <th scope="col">Sposób dostawy</th>
+            <th scope="col">Status</th>
+            <th scope="col">Koszt</th>
+            <th scope="col">Czat id</th>
+            <th scope="col">Reklamacja id</th>
+            <th scope="col">Klient id</th>
+            <th scope="col">Producent id</th>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td>{{order.id}}</td>
+                    <td>{{order.czy_oplacone}}</td>
+                    <td>{{order.sposob_dostawy}}</td>
+                    <td>{{order.status}}</td>
+                    <td>{{order.koszt}}</td>
+                    <td>{{order.czat_id}}</td>
+                    <td>{{order.reklamacja_id}}</td>
+                    <td>{{order.klient_id}}</td>
+                    <td>{{order.producent_id}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
 {% endblock content %}

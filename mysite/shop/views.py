@@ -8,14 +8,15 @@ from rest_framework.decorators import api_view
 import json
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth import login as auth_login
-from .forms import SignUpForm, LoginForm
+from .forms import SignUpForm
 from django.db.models import Q
+from django.contrib.auth.forms import AuthenticationForm
 
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
 
-# TODO : fix
+
 def login_view(request):
     
     if request.user.is_authenticated:
@@ -25,21 +26,19 @@ def login_view(request):
         
     elif request.method == 'POST':
         
-        form = LoginForm(request.POST)
+        form = AuthenticationForm(data=request.POST)
         if form.is_valid():
                 
-            email = form.cleaned_data.get('email')
-            raw_password = form.cleaned_data.get('password')
-            user = authenticate(request, email=email, password=raw_password)
-            
+            user = form.get_user()
             if user is not None:
+           
                 auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 print("Logged in")
                 return redirect('shop')
                 
     else:
-        form = LoginForm()
-    
+        form = AuthenticationForm()
+        
     return render(request, 'shop/login.html', {'form': form })
     
     
@@ -81,10 +80,8 @@ def logout_view(request):
     if request.user.is_authenticated:
         logout(request)
         print('Logout successfull')
-        return redirect('shop')
-    
-    context = {}
-    return render(request, 'shop/logout.html', context)
+        
+    return redirect('shop')
 
 # # Calculate sum of all orders of a user
 # def calculate_sum_koszyk(klient):
@@ -172,8 +169,8 @@ def add_product_to_database(request):
         
         kategoria_nazwa = str(data['kategoria'])
         print(kategoria_nazwa)
-        kategoria_id = Kategoria.objects.all().filter(nazwa_kategorii=kategoria_nazwa)
-        print(kategoria_id)
+        kategoriaa = Kategoria.objects.get(nazwa_kategorii=kategoria_nazwa)
+        # print(kategoriaa.id_kategorii)
         
         # dodaj produkt
         product = Produkt.objects.create(nazwa=nazwa, numer_partii=numer_partii,
@@ -181,7 +178,7 @@ def add_product_to_database(request):
                                          producent_id=producent_id)
         
         # TODO: dodaj produkt - kategoria
-        #Produkt.kategorias.create(produkt_id=product.id_produktu, kategoria_id=kategoria_id)
+        Produkt.kategoria.add(kategoriaa)
         
     else:
         print('User is not defined')
@@ -235,16 +232,35 @@ def manage(request):
     
     return redirect('shop')
     
-    
-
 
 # Page for viewing orders
-# access: CLIENT, PRODUCENT
+# access: PRODUCENT, CLIENT
 def orders(request):
-    context = {}
-    return render(request, 'shop/orders.html')
+    
+    orders = {}
+    current_user = 'Anonymous'
+    if request.user.is_authenticated:
+        
+        print('User is authenticated')
+        print(request.user.username)
+        current_user = request.user
+        
+        # Wybierz wszystkie zamówienia klienta
+        if request.user.is_klient:
+            print("Selecting client's orders")
+            orders = Zamowienie.objects.all().filter(klient_id=current_user.id_user)
+              
+        # Wybierz wszystkie zamówienia producenta
+        elif request.user.is_producent:
+            print("Selecting producent's orders")
+            orders = Zamowienie.objects.all().filter(producent_id=current_user.id_user)
+            
+    context = {'current_user': current_user, 'orders': orders }
+    return render(request, 'shop/orders.html', context)
+                                    
+    
 
-
+# TODO: fix
 # Displays info about category
 # access: CLIENT, PRODUCENT
 class Category(DetailView):
