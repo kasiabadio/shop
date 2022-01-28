@@ -83,18 +83,6 @@ def logout_view(request):
         
     return redirect('shop')
 
-# # Calculate sum of all orders of a user
-# def calculate_sum_koszyk(klient):
-#     with connection.cursor() as cursor:
-#         sum_koszyk = cursor.callproc('calculate_sum_koszyk', [klient])
-#     return sum_koszyk
-
-# Calculate sum of a single order (sql1.py)
-# def calculate_sum_zamowienie(zamowienie):
-#     with connection.cursor() as cursor:
-#         sum_zamowienie = cursor.callproc('calculate_sum_zamowienie', [zamowienie])
-#     return sum_zamowienie
-#-----------------------------------------------
 
 # add item to cart
 @api_view(["POST"])
@@ -170,15 +158,18 @@ def add_product_to_database(request):
         kategoria_nazwa = str(data['kategoria'])
         print(kategoria_nazwa)
         kategoriaa = Kategoria.objects.get(nazwa_kategorii=kategoria_nazwa)
-        # print(kategoriaa.id_kategorii)
         
         # dodaj produkt
         product = Produkt.objects.create(nazwa=nazwa, numer_partii=numer_partii,
                                          cena=cena, opis=opis, liczba=liczba, image=image,
                                          producent_id=producent_id)
         
-        # TODO: dodaj produkt - kategoria
-        Produkt.kategoria.add(kategoriaa)
+        # dodaj produkt - kategoria
+        cursor = connection.cursor()
+        query = """INSERT INTO shop_produkt_kategoria
+        (id, produkt_id, kategoria_id)
+        VALUES((SELECT MAX(id) FROM shop_produkt_kategoria)+1,""" + str(product.id_produktu) + "," + str(kategoriaa.id_kategorii) + ");"
+        cursor.execute(query)
         
     else:
         print('User is not defined')
@@ -269,10 +260,21 @@ class Category(DetailView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['product_categorias'] = Produkt.kategoria.through.objects.get(kategoria_id=self.object.id_kategorii)
+        cursor = connection.cursor()
+        query = """SELECT produkt_id FROM shop_produkt_kategoria
+        WHERE kategoria_id=""" + str(self.object.id_kategorii) + ";"
+        cursor.execute(query)
+        context['product_categorias'] = cursor.fetchall()
+        cursor.close()
+        
         products = []
         for product_cat in context['product_categorias']:
-            products.append(Produkt.objects.get(id_produktu=product_cat.produkt_id))
+            product_cat_parsed = int(float(product_cat[0]))
+            product_in_category = Produkt.objects.get(id_produktu=product_cat_parsed)
+            products.append(product_in_category)
+            print(products)
+            
+        print(products[0].nazwa)
         context['products'] = products
         return context
 
