@@ -245,6 +245,7 @@ def add_one_produkt():
         return 1
     return largest.id_produktu + 1
     
+    
 class Produkt(models.Model):
     
     class Meta:
@@ -278,6 +279,7 @@ class Produkt(models.Model):
     kategoria = models.ManyToManyField(Kategoria) 
 
     image = models.ImageField(null=True, blank=True)
+    is_hidden = models.BooleanField(default=True)
     
 
     @property

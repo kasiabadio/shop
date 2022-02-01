@@ -6,21 +6,23 @@ function add_to_database() {
     let opis = document.getElementById('add-opis').value;
     let liczba = document.getElementById('add-liczba').value;   
     let image = document.getElementById('add-image').value;
+    let is_hidden = document.getElementById('add-is_hidden').value;
     let category = document.getElementById('add-category');
     let value_category = category.options[category.selectedIndex].value;
+    
 
     if(user === 'AnonymousUser'){
         console.log('Not logged in')
 
     }else{
         console.log('Logged in')
-        add_product_to_database(nazwa, numer_partii, cena, opis, liczba, image, value_category);
+        add_product_to_database(nazwa, numer_partii, cena, opis, liczba, image, is_hidden, value_category);
     }
 }
 
 
 
-function add_product_to_database(nazwa, numer_partii, cena, opis, liczba, image, category){
+function add_product_to_database(nazwa, numer_partii, cena, opis, liczba, image, is_hidden, category){
     console.log('User is logged in, process order...')
 
     let url = '/shop/add_product_to_database/'
@@ -38,6 +40,7 @@ function add_product_to_database(nazwa, numer_partii, cena, opis, liczba, image,
             'opis': opis,
             'liczba': liczba,
             'image': image,
+            'is_hidden': is_hidden,
             'kategoria': category
         })
     })

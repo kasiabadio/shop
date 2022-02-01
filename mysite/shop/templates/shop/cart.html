@@ -11,18 +11,11 @@
             {% for order in orders_for_user %}
                 <div class="col-md-12" style="background-color:rgb(226, 226, 226);">
 
-                    <h4>Numer zamówienia: {{order.id}}</h4>
-                    <h4>Suma zamówienia: {{cart_sum|get_item:order.id|floatformat:2}} zł</h4>
-                    <h10><em style="color:orange;">czy_oplacone:</em> {{order.czy_oplacone}},</h10>
-                    <h10><em style="color:orange;">sposob_dostawy:</em> {{order.sposob_dostawy}},</h10>
-                    <h10><em style="color:orange;">status:</em> {{order.status}},</h10>
-                    <h10><em style="color:orange;">koszt:</em> {{order.koszt}},</h10>
-                    <h10><em style="color:orange;">czat_id:</em> {{order.czat_id}},</h10>
-                    <h10><em style="color:orange;">producent_id:</em> {{order.producent_id}},</h10>
-                    <h10><em style="color:orange;">reklamacja_id:</em> {{order.reklamacja_id}}</h10>
-                    <br>
-
-                    
+                    <h8>Numer zamówienia: {{order.id}}</h8><br>
+                    <h8>Suma zamówienia: {{cart_sum|get_item:order.id|floatformat:2}} zł</h8><br>
+                    <h10><div id="order-removal-cart" class="btn btn-outline-danger btn-sm" 
+                        onclick="remove_order_from_cart()" role="button" data-orderid={{order.id}}>Usuń całe zamówienie</div></h10>
+                   
                     <table class="table">
                         <thead>
                             <tr>
@@ -35,12 +28,14 @@
                             
                             <th scope="col">Liczba sztuk</th>
                             <th scope="col">Pod-suma</th>
+                            <th scope="col">Usuń produkt</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for key, products in cart_products.items %}
                                 
                                 {% if key == order.id %}
+
                                     {% for product in products %}
                                     <tr>
                                         <td>{{product.nazwa}}</td>
@@ -59,15 +54,22 @@
                                             {% endif %}
                                         {% endfor %}
                                         
+
+                                        <td><div id="product-removal-cart" class="btn btn-outline-danger btn-sm" 
+                                            onclick="remove_product_from_order()" role="button" 
+                                            data-idproduktu={{product.id_produktu}} data-orderid={{order.id}}>Usuń</div>
+                                        </td>
+
                                     </tr>
                                     {% endfor %}
+
                                 {% endif %}
 
                             {% endfor %}
                         </tbody>
-                    </table>
-                                              
+                    </table>              
                 </div> 
+
             {% endfor %}
         <br>
     </div>

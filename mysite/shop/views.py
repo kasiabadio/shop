@@ -11,6 +11,7 @@ from django.contrib.auth import login as auth_login
 from .forms import SignUpForm
 from django.db.models import Q
 from django.contrib.auth.forms import AuthenticationForm
+from .context_processors import *
 
 @register.filter
 def get_item(dictionary, key):
@@ -118,22 +119,12 @@ def update_item(request):
     return JsonResponse('Item was added to cart', safe=False)
 
 
+
+
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
 def shop(request):
-    
-    products = Produkt.objects.all()
-    super_categories = Kategoria.objects.all().filter(id_nadkategorii=None)
-    
-    # create dictionary where we store subcategories     
-    super_categories_dict = {}
-        
-    for category in super_categories:
-        
-        sub_categories = Kategoria.objects.all().filter(id_nadkategorii=category.id_kategorii)
-        super_categories_dict[category] = sub_categories
-            
-    context = {'products': products, 'super_categories_dict': super_categories_dict}
+    context = add_to_context(request)
     return render(request, 'shop/main.html', context)
 
 
@@ -153,6 +144,10 @@ def add_product_to_database(request):
         opis = str(data['opis'])
         liczba = int(float(data['liczba']))
         image = str(data['image'])
+        is_hidden_TF = str(data['is_hidden'])
+        is_hidden = 1
+        if is_hidden_TF == 'Nie': is_hidden = 0
+        
         producent_id = request.user.id_user
         
         kategoria_nazwa = str(data['kategoria'])
@@ -162,7 +157,7 @@ def add_product_to_database(request):
         # dodaj produkt
         product = Produkt.objects.create(nazwa=nazwa, numer_partii=numer_partii,
                                          cena=cena, opis=opis, liczba=liczba, image=image,
-                                         producent_id=producent_id)
+                                         producent_id=producent_id, is_hidden=is_hidden)
         
         # dodaj produkt - kategoria
         cursor = connection.cursor()
@@ -220,7 +215,6 @@ def manage(request):
         except User.producent.RelatedObjectDoesNotExist:   
             print ("User is not defined")
     
-    
     return redirect('shop')
     
 
@@ -228,6 +222,7 @@ def manage(request):
 # access: PRODUCENT, CLIENT
 def orders(request):
     
+    context = add_to_context(request)
     orders = {}
     current_user = 'Anonymous'
     if request.user.is_authenticated:
@@ -251,7 +246,6 @@ def orders(request):
                                     
     
 
-# TODO: fix
 # Displays info about category
 # access: CLIENT, PRODUCENT
 class Category(DetailView):
@@ -292,7 +286,6 @@ class Product(DetailView):
 
 # Page where user can see his order which contains orders from specific producents
 # access: CLIENT
-
 def cart(request):
     
     orders_for_user = {}
@@ -374,6 +367,48 @@ def curr_order_number(request):
     order.save()
     
     return JsonResponse('Order number was saved', safe=False)
+
+
+# remove order from cart
+@api_view(["POST"])
+def remove_order(request):
+    
+    data = json.loads(json.dumps(request.data))
+    print("remove (order_id): " + data['order_id'])
+    record = Zamowienie.objects.get(id=int(data['order_id']))
+    record.delete()
+    
+    # remove all related products to order from cart
+    related_products = ZamowienieProdukt.objects.get(zamowienie_id=int(data['order_id']))
+    related_products.delete()
+    
+    return JsonResponse('Order was deleted from cart', safe=False)
+
+
+# remove product from order in cart
+@api_view(["POST"])
+def remove_product(request):
+    
+    data = json.loads(json.dumps(request.data))
+    print("remove (order_id, product_id): " + data['order_id'] + " " + data['product_id'])
+    
+    # remove zamowienie - produkt
+    record = ZamowienieProdukt.objects.get(produkt_id=int(data['product_id']), zamowienie_id=int(data['order_id']))
+    record.delete()
+    
+    # if this was the last product, remove order
+    cursor = connection.cursor()
+    query = """SELECT COUNT(*) FROM shop_zamowienieprodukt
+    WHERE zamowienie_id=""" + data['order_id'] + ";"
+    cursor.execute(query)
+    counter = cursor.fetchall()
+    cursor.close()
+    
+    if counter[0][0] == 0: 
+        record = Zamowienie.objects.get(id=int(data['order_id']))
+        record.delete()
+
+    return JsonResponse('Product was deleted from order in cart', safe=False)
 
 
 # confirm order in checkout

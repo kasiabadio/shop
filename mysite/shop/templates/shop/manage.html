@@ -18,6 +18,7 @@
                 <th scope="col">Obrazek</th>
                 <th scope="col">Id producenta</th>
                 <th scope="col">Kategoria</th>
+                <th scope="col">Ukryty</th>
             </thead>
             <tbody>
                 {% for product in products %}
@@ -36,7 +37,14 @@
                                 <td>{{cat}}</td>
                             {% endif %}
                         {% endfor %} 
-
+                        
+                        {% if product.is_hidden == 1 %}
+                            <td>Tak</td>
+                        {% endif %}
+                        
+                        {% if product.is_hidden == 0 %}
+                            <td>Nie</td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>
@@ -77,6 +85,14 @@
             <div class="form-group">
                 <label>Obrazek</label>
                 <input type="text" id="add-image" class="form-control" value="None"></input>
+            </div>
+
+            <div class="form-group">
+                <label>Czy ukryć produkt?</label>
+                <select id="add-is_hidden" class="form-control">
+                    <option>Nie</option>
+                    <option>Tak</option>
+                </select>
             </div>
 
             <div class="form-group">
