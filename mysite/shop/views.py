@@ -1,17 +1,17 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
 from django.views.generic.detail import DetailView
 from .models import *
 from django.db import connection
 from django.template.defaulttags import register
-from rest_framework.decorators import api_view
-import json
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth import login as auth_login
 from .forms import SignUpForm
 from django.db.models import Q
 from django.contrib.auth.forms import AuthenticationForm
 from .context_processors import *
+from .apis import *
+
+
 
 @register.filter
 def get_item(dictionary, key):
@@ -75,7 +75,6 @@ def signup(request):
     return render(request, 'shop/signup.html', {'form': form })
         
         
-        
 def logout_view(request):
     
     if request.user.is_authenticated:
@@ -85,91 +84,12 @@ def logout_view(request):
     return redirect('shop')
 
 
-# add item to cart
-@api_view(["POST"])
-def update_item(request):
-    
-    data = json.loads(json.dumps(request.data))
-    product_id = int(float(data['product_id']))
-    producent_id = int(float(data['producent_id']))
-    
-    if request.user.is_authenticated:
-        current_user = request.user
-        
-        product = Produkt.objects.get(id_produktu=product_id)
-        # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
-        zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, koszt=0, klient_id=current_user.id_user, producent_id=producent_id)
-        print("New order had to be created: ", created)
-        
-        # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
-        print("producent_id", producent_id)
-        print("produkt_id: ", product_id)
-        print("zamowienie.id_zamowienie: ", zamowienie.id_zamowienie)
-        
-        zamowienieproduct, created = ZamowienieProdukt.objects.get_or_create(produkt_id=product_id, zamowienie_id=zamowienie.id)
-        if not created:
-            print("Increase quantity by one in ZamowienieProdukt")
-            zamowienieproduct.quantity += 1
-            zamowienieproduct.save()
-        else:
-            zamowienieproduct.quantity = 1
-            zamowienieproduct.save()
-            print("New ZamowienieProdukt had to be created")
-
-    return JsonResponse('Item was added to cart', safe=False)
-
-
-
-
 # Main page for shop: search (products/)
 # access: CLIENT, PRODUCENT
 def shop(request):
     context = add_to_context(request)
+    context['user'] = request.user
     return render(request, 'shop/main.html', context)
-
-
-@api_view(["POST"])
-def add_product_to_database(request):
-
-    if request.user.is_authenticated and request.user.is_producent:
-        
-        print('User is authenticated')
-        current_user = request.user
-        
-        data = json.loads(json.dumps(request.data))
-        
-        nazwa = str(data['nazwa'])        
-        numer_partii = int(float(data['numer_partii']))
-        cena = float(data['cena'])
-        opis = str(data['opis'])
-        liczba = int(float(data['liczba']))
-        image = str(data['image'])
-        is_hidden_TF = str(data['is_hidden'])
-        is_hidden = 1
-        if is_hidden_TF == 'Nie': is_hidden = 0
-        
-        producent_id = request.user.id_user
-        
-        kategoria_nazwa = str(data['kategoria'])
-        print(kategoria_nazwa)
-        kategoriaa = Kategoria.objects.get(nazwa_kategorii=kategoria_nazwa)
-        
-        # dodaj produkt
-        product = Produkt.objects.create(nazwa=nazwa, numer_partii=numer_partii,
-                                         cena=cena, opis=opis, liczba=liczba, image=image,
-                                         producent_id=producent_id, is_hidden=is_hidden)
-        
-        # dodaj produkt - kategoria
-        cursor = connection.cursor()
-        query = """INSERT INTO shop_produkt_kategoria
-        (id, produkt_id, kategoria_id)
-        VALUES((SELECT MAX(id) FROM shop_produkt_kategoria)+1,""" + str(product.id_produktu) + "," + str(kategoriaa.id_kategorii) + ");"
-        cursor.execute(query)
-        
-    else:
-        print('User is not defined')
-    
-    return JsonResponse('Item was added to database', safe=False)
 
 
 # Page for adding product to a database, modifying visibility for existing products
@@ -243,7 +163,6 @@ def orders(request):
             
     context = {'current_user': current_user, 'orders': orders }
     return render(request, 'shop/orders.html', context)
-                                    
     
 
 # Displays info about category
@@ -270,6 +189,7 @@ class Category(DetailView):
             
         print(products[0].nazwa)
         context['products'] = products
+        context['user'] = self.request.user
         return context
 
 
@@ -281,6 +201,10 @@ class Product(DetailView):
     
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        current_user = self.request.user
+        context['user'] = current_user
+        print("Produkt: ", self.object.producent_id, current_user.id_user)
+        
         return context
 
 
@@ -308,6 +232,7 @@ def cart(request):
         try:
             
             current_user = request.user.klient
+            
             # filter elements by current user id and display only his order & select only those orders which were not paid
             orders_for_user = Zamowienie.objects.all().filter(status=60).filter(klient=current_user).filter(czy_oplacone=False)
             
@@ -351,82 +276,6 @@ def cart(request):
                'cart_producents': cart_producents, 'all': all}
     
     return render(request, 'shop/cart.html', context)
-
-
-# choose which order is in checkout
-@api_view(["POST"])
-def curr_order_number(request):
-    
-    data = json.loads(json.dumps(request.data))
-    order_number = int(float(data['order_number']))
-    print('Order number: ', order_number, type(order_number))
-    
-    # change status from 60 (in cart) to 1 (in checkout)
-    order = Zamowienie.objects.get(id=order_number)
-    order.status = 1
-    order.save()
-    
-    return JsonResponse('Order number was saved', safe=False)
-
-
-# remove order from cart
-@api_view(["POST"])
-def remove_order(request):
-    
-    data = json.loads(json.dumps(request.data))
-    print("remove (order_id): " + data['order_id'])
-    record = Zamowienie.objects.get(id=int(data['order_id']))
-    record.delete()
-    
-    # remove all related products to order from cart
-    related_products = ZamowienieProdukt.objects.get(zamowienie_id=int(data['order_id']))
-    related_products.delete()
-    
-    return JsonResponse('Order was deleted from cart', safe=False)
-
-
-# remove product from order in cart
-@api_view(["POST"])
-def remove_product(request):
-    
-    data = json.loads(json.dumps(request.data))
-    print("remove (order_id, product_id): " + data['order_id'] + " " + data['product_id'])
-    
-    # remove zamowienie - produkt
-    record = ZamowienieProdukt.objects.get(produkt_id=int(data['product_id']), zamowienie_id=int(data['order_id']))
-    record.delete()
-    
-    # if this was the last product, remove order
-    cursor = connection.cursor()
-    query = """SELECT COUNT(*) FROM shop_zamowienieprodukt
-    WHERE zamowienie_id=""" + data['order_id'] + ";"
-    cursor.execute(query)
-    counter = cursor.fetchall()
-    cursor.close()
-    
-    if counter[0][0] == 0: 
-        record = Zamowienie.objects.get(id=int(data['order_id']))
-        record.delete()
-
-    return JsonResponse('Product was deleted from order in cart', safe=False)
-
-
-# confirm order in checkout
-@api_view(["POST"])
-def process_order(request):
-    
-    data = json.loads(json.dumps(request.data))
-    order_number = int(float(data['order_number']))
-    print('Order number: ', order_number, type(order_number))
-    
-    # change status from 1 (in checkout) to 2 (made payment)
-    # note: here could implement payment method
-    order = Zamowienie.objects.get(id=order_number)
-    order.status = 2
-    order.czy_oplacone = True
-    order.save()
-    
-    return JsonResponse('Order in checkout was payed', safe=False)
 
 
 

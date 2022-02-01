@@ -1,5 +1,3 @@
-
-// ordernumber is sent to checkout.html
 function order_checkout() {
 
     let select = document.getElementById('order-checkout').innerHTML;

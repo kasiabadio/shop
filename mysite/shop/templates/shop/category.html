@@ -10,7 +10,9 @@
                 <div class="box-element product">
                     <h6><strong>{{product.nazwa}}</strong></h6>
                     <hr>
-                    <button data-product={{product.id_produktu}} data-producent={{product.producent_id}} class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
+                    {% if user.is_klient %}
+                        <button data-product={{product.id_produktu}} data-producent={{product.producent_id}} class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
+                    {% endif %}
                     <a class="btn btn-outline-success" href="{% url 'Product' product.pk %}">Zobacz</a>
                     <h4 style="display: inline-block;float: right">{{product.cena|floatformat:2}} zł</h4>
                 </div>
