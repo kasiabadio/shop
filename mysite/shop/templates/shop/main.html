@@ -77,16 +77,36 @@
             </div>
 
             <li class="nav-item">
+                <form class="form-horizontal">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" id="find-product" class="form-control"></input>
+                    </div>
+                </form>
+                
+                <div id='find-product-btn' class="btn btn-light btn-sm" onclick='find_product()' role="button">Find</div>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link" href="{% url 'shop' %}">Ecoheaven</a>
             </li>
 
+            
             <li class="nav-item" >
                 <a class="nav-link" href="{% url 'orders' %}">Zamówienia</a>
             </li>
 
-            <li class="nav-item" >
-                <a class="nav-link" href="{% url 'cart' %}">Koszyk</a>
-            </li>
+            {% if user.is_klient %}
+                <li class="nav-item" >
+                    <a class="nav-link" href="{% url 'cart' %}">Koszyk</a>
+                </li>
+            {% endif %}
+
+            {% if user.is_producent %}
+                <li class="nav-item" >
+                    <a class="nav-link" href="{% url 'manage' %}">Zarządzaj</a>
+                </li>
+            {% endif %}
 
             <li class="nav-item" >
                 <a class="nav-link" href="{% url 'logout' %}">Wyloguj się</a>

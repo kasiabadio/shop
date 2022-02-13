@@ -14,7 +14,8 @@
             <h8>Cena: {{object.cena|floatformat:2}} zł</h8><br>
             <h8>Liczba: {{object.liczba}}</h8><br>
             <hr>
-                <button data-product={{object.id_produktu}} data-producent={{object.producent_id}} class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
+            <button data-product={{object.id_produktu}} data-producent={{object.producent_id}} 
+            class="btn btn-outline-secondary add-btn update-cart">Dodaj do koszyka</button>
         </div>
     </div>
 {% endif %}
@@ -22,33 +23,33 @@
 
 
 {% if user.is_producent %}
+<div class="row">
+    <div class="col-md-6" style="background-color:#aaa;">
+        <img class="img" alt="Responsive image" src="{% static 'images/placeholder.png' %}">  
+
+        {% if object.producent_id == user.id_user %}
+            <form class="form-horizontal">
+                {% csrf_token %}
+                <label>Opis</label>
+                <div class="form-group">
+                    <input type="text" id="add-opis" class="form-control" value="{{object.opis}}"></input><br>
+                </div>
+            </form>
             
+            <div id='product-update' class="btn btn-outline-success" data-product="{{object.id_produktu}}" 
+            onclick='edit_product()' role="button">Zatwierdź edycję</div>
+
+        {% endif %}
+        <br><br>
+
+    </div>     
+    <div class="col-md-6" style="background-color:#aaa;">
+        <h2 style="color:#0d6efd;"><strong>{{object.nazwa}}</strong></h2><br>
+        <h8>Numer partii: {{object.numer_partii}}</h8><br>
+        <h8>Cena: {{object.cena|floatformat:2}} zł</h8><br>
+        <h8>Liczba: {{object.liczba}}</h8><br>
+    </div>  
+</div>
 {% endif %}
-    <div class="row">
-        <div class="col-md-6" style="background-color:#aaa;">
-            <img class="img" alt="Responsive image" src="{% static 'images/placeholder.png' %}">  
-
-            {% if object.producent_id == user.id_user %}
-                <form class="form-horizontal">
-                    {% csrf_token %}
-                    <label>Opis</label>
-                    <div class="form-group">
-                        <input type="text" id="add-opis" class="form-control" value="{{object.opis}}"></input><br>
-                    </div>
-                </form>
-                
-                <div id='product-update' class="btn btn-outline-success" data-product="{{object.id_produktu}}" 
-                onclick='edit_product()' role="button">Zatwierdź edycję</div>
-
-            {% endif %}
-            <br><br>
-
-        </div>     
-        <div class="col-md-6" style="background-color:#aaa;">
-            <h2 style="color:#0d6efd;"><strong>{{object.nazwa}}</strong></h2><br>
-            <h8>Numer partii: {{object.numer_partii}}</h8><br>
-            <h8>Cena: {{object.cena|floatformat:2}} zł</h8><br>
-            <h8>Liczba: {{object.liczba}}</h8><br>
-        </div>  
-    </div>
+    
 {% endblock content %}

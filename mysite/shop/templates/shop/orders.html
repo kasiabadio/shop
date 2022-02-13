@@ -3,10 +3,6 @@
 {% block content %}
 <div class="row" style="background-color:#aaa;">
     <h2 style="color:#0d6efd;">Historia zamówień</h2>
-    <div style="background-color:rgb(226, 226, 226);">
-       
-    </div>
-
 
     <table class="table" style="background-color:rgb(226, 226, 226);">
         <thead>
@@ -19,6 +15,8 @@
             <th scope="col">Reklamacja id</th>
             <th scope="col">Klient id</th>
             <th scope="col">Producent id</th>
+
+            <th scope="col">Zareklamuj</th>
         </thead>
         <tbody>
             {% for order in orders %}
@@ -32,6 +30,13 @@
                     <td>{{order.reklamacja_id}}</td>
                     <td>{{order.klient_id}}</td>
                     <td>{{order.producent_id}}</td>
+
+                    {% if user.is_klient %}
+                        <td>
+                            <div id='reclamation' class="btn btn-primary" onclick="reclamation()"  role="button" value="{{order.id}}">Reklamuję</div>
+                        </td>
+                    {% endif %}
+
                 </tr>
             {% endfor %}
         </tbody>

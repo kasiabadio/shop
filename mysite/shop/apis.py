@@ -1,8 +1,34 @@
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
+from django.shortcuts import render, redirect
 import json
 from .models import *
 from django.db import connection
+
+# find product by name
+@api_view(["POST"])
+def find_product(request):
+    
+    data = json.loads(json.dumps(request.data))
+    product_pattern = "'" + str(data['product_pattern']) + "'"
+    product_id = -1
+    with connection.cursor() as cursor:
+        
+        execute_text = 'call find_product(' + product_pattern + ', ' + str(product_id) + ')'
+        cursor.execute(execute_text)
+        
+        result = cursor.fetchall()
+        if result is not None:
+            product_id = result[0][0]
+            print(product_id, type(product_id))
+            product = Produkt.objects.get(id_produktu=product_id)
+            #return render(request, 'find_product/', {'product': product })
+            #return render(request, 'shop/product.html', {'product': product })
+            return redirect('Product', product_id)
+              
+    #return JsonResponse('None', safe=False)
+
+
 
 # add item to cart
 @api_view(["POST"])
@@ -17,8 +43,14 @@ def update_item(request):
         
         product = Produkt.objects.get(id_produktu=product_id)
         # create zamowienie: (id, id_zamowienie, czy_oplacone, sposob_dostawy, status, koszt, czat_id, reklamacja_id, klient_id, producent_id)
-        zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, koszt=0, klient_id=current_user.id_user, producent_id=producent_id)
+        zamowienie, created = Zamowienie.objects.get_or_create(czy_oplacone=False, status=60, klient_id=current_user.id_user, producent_id=producent_id)
         print("New order had to be created: ", created)
+        if not created: 
+            zamowienie.koszt += product.cena
+        else:
+            zamowienie.koszt = product.cena
+        
+        zamowienie.save()
         
         # create zamowienieproduct: (id, quantity, produkt_id, zamowienie_id)
         print("producent_id", producent_id)
@@ -34,10 +66,6 @@ def update_item(request):
             zamowienieproduct.quantity = 1
             zamowienieproduct.save()
             print("New ZamowienieProdukt had to be created")
-            
-        # increase koszt of zamowienie 
-        zamowienie.koszt += product.cena
-        zamowienie.save()
 
     return JsonResponse('Item was added to cart', safe=False)
 

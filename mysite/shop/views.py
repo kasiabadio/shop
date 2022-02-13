@@ -3,7 +3,7 @@ from django.views.generic.detail import DetailView
 from .models import *
 from django.db import connection
 from django.template.defaulttags import register
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import logout
 from django.contrib.auth import login as auth_login
 from .forms import SignUpForm
 from django.db.models import Q
@@ -203,7 +203,7 @@ class Product(DetailView):
         context = super().get_context_data(*args, **kwargs)
         current_user = self.request.user
         context['user'] = current_user
-        print("Produkt: ", self.object.producent_id, current_user.id_user)
+        print("Produkt: product_id, producent_id, id_user", self.object.id_produktu, self.object.producent_id, current_user.id_user)
         
         return context
 

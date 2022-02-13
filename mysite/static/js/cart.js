@@ -10,7 +10,6 @@ function order_cart() {
         console.log('Logged in')
         update_order_number(value);
     }
-
 }
 
 
@@ -68,7 +67,7 @@ function remove_order_from_cart(){
                     return response.json()
                 })
                 .then((response) => {
-                    console.log(response)
+                    window.location.href=window.location.href;
                 })
                 .catch(error => {
                     console.error(error);
@@ -106,7 +105,7 @@ function remove_product_from_order(){
                     return response.json()
                 })
                 .then((data) => {
-                    location.reload; 
+                    window.location.href=window.location.href;
                 })
                 .catch(error => {
                     console.error(error);

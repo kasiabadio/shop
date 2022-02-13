@@ -15,12 +15,14 @@ urlpatterns = [
     path('product/<int:pk>/', Product.as_view(), name='Product'),
     path('curr_order_number/', views.curr_order_number, name='curr_order_number'),
     path('update_item/', views.update_item, name='update_item'),
+    path('find_product/', views.find_product, name='find_product'),
     path('remove_product/', views.remove_product, name='remove_product'),
     path('edit_product/', views.edit_product, name='edit_product'),
     path('remove_order/', views.remove_order, name='remove_order'),
     path('process_order/', views.process_order, name='process_order'),
     path('login/', views.login_view, name='login'),
     path('signup/', views.signup, name='signup'),
-    path('logout/', views.logout_view, name='logout'),
+    path('logout/', views.logout_view, name='logout')
+   
 ]
 

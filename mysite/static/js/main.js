@@ -64,3 +64,35 @@ function update_user_order(product_id, producent_id){
                 console.error(error);
             })
 } 
+
+
+function find_product(){
+    let product_pattern = document.getElementById('find-product').value;
+    
+    if(user !== 'AnonymousUser'){
+        console.log('User is logged in, find product...')
+        let url = '/shop/find_product/'
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                'product_pattern': product_pattern,
+            })
+        })
+
+        .then((response) => {
+            return response.json()
+        })
+        .then((data) => {
+            location.reload;
+        })
+        .catch(error => {
+            console.error(error);
+        })
+
+    }
+}

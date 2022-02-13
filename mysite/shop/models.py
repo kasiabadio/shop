@@ -209,14 +209,13 @@ class Zamowienie(models.Model):
             models.Index(fields=['czy_oplacone',]),
             models.Index(fields=['sposob_dostawy',]),
             models.Index(fields=['status',]),
-            models.Index(fields=['koszt',]),
         ]
     
     id_zamowienie = models.IntegerField(null=True, default=add_one_zamowienie)
     czy_oplacone = models.BooleanField(verbose_name="czy opłacone")
     sposob_dostawy = models.CharField(max_length=50, verbose_name="sposób dostawy")
     status = models.IntegerField()
-    koszt = models.FloatField()
+    koszt = models.FloatField(null=True)
 
     # many-to-one with producent
     producent = models.ForeignKey(Producent, on_delete=models.CASCADE, default="")

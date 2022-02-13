@@ -1,6 +1,5 @@
 function edit_product(){
     let opis = document.getElementById('add-opis').value;
-
     let el = document.querySelector('#product-update');
     let product_id = el.dataset.product;
     
