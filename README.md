@@ -24,7 +24,10 @@ The purpose was to create shop where producents could register and sell their pr
 * See his history of orders: producent id, order status, was it payed, shipment detail, cost
 ## Technologies
 * Django
+* javascript
 * Postgresql
+* HTML5
+* CSS
 * venv
 ## Todo
 * Lookup of a product by name
